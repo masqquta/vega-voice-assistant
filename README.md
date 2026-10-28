@@ -2,7 +2,7 @@
 
 > Из реплики в свободной форме создаёт, находит и показывает задачи, напоминания и встречи и подтверждает действие голосом или текстом.
 
-**Демо:** ещё не задеплоено (см. «Деплой») · **Репозиторий:** — · **ТЗ:** [docs/requirements.pdf](docs/requirements.pdf)
+**Демо:** ещё не задеплоено (см. «Деплой») · **Репозиторий:** https://github.com/masqquta/vega-voice-assistant · **ТЗ:** [docs/requirements.pdf](docs/requirements.pdf)
 
 ## Что умеет
 
@@ -29,7 +29,7 @@
 | Эмбеддинги | Yandex text-search-doc/query | семантический поиск; без ключа — FTS + словарь синонимов |
 | Даты | Luxon (таймзона Europe/Moscow) | вся арифметика дат в одном месте |
 | Валидация | zod | схема NluResult и тел запросов |
-| Хостинг | Fly.io + volume | HTTPS, always-on, SQLite переживает редеплой |
+| Хостинг | Render (free, Docker) | HTTPS без карты; запасной вариант — Fly.io + volume |
 
 ## Архитектура
 
@@ -92,12 +92,13 @@ test/         dates.test.js, assistant.test.js, api.test.js
 npm install
 cp .env.example .env        # ключи можно не заполнять
 npm run migrate             # применить миграции
-npm run seed                # импорт датасета (data/dataset.clean.csv) или мини-сид
+npm run clean               # (уже сделано) очистка датасета ТЗ: data/raw → data/dataset.clean.csv
+npm run seed                # демо-сценарии + импорт 1000 записей датасета
 npm run embeddings          # эмбеддинги (нужен ключ Yandex)
 npm run dev                 # http://localhost:3000
 ```
 
-Без ключей LLM приложение работает в режиме RuleBased (базовые фразы). Фронт без бэка: `http://localhost:3000/?mock=1` (ответы из `web/mocks`, сгенерированы реальным пайплайном).
+Для понимания свободных фраз достаточно бесплатного ключа OpenRouter (`OPENROUTER_API_KEY`, без карты: https://openrouter.ai/keys). Без ключей LLM приложение работает в режиме RuleBased (базовые фразы). Фронт без бэка: `http://localhost:3000/?mock=1` (ответы из `web/mocks`, сгенерированы реальным пайплайном).
 
 Тесты: `npm test` · NLU-eval: `npm run eval:nlu`
 
@@ -109,6 +110,8 @@ npm run dev                 # http://localhost:3000
 | `NODE_ENV` | да | `production` на проде (отключает `X-Debug-Now`) | `production` |
 | `DB_PATH` | да | путь к файлу SQLite | `/data/app.db` |
 | `TZ_DEFAULT` | нет | таймзона по умолчанию | `Europe/Moscow` |
+| `OPENROUTER_API_KEY` | для LLM (основная) | ключ OpenRouter | `sk-or-v1-…` |
+| `OPENROUTER_MODELS` | нет | модели через запятую, следующая — запасная | `nvidia/nemotron-3.5-super-vl:free,…` |
 | `YANDEX_API_KEY` | для LLM/STT/эмбеддингов | API-ключ Yandex Cloud | `AQVN…` |
 | `YANDEX_FOLDER_ID` | то же | каталог Yandex Cloud | `b1g…` |
 | `YANDEX_LLM_MODEL` | нет | модель | `yandexgpt/latest` |
@@ -116,7 +119,7 @@ npm run dev                 # http://localhost:3000
 | `GIGACHAT_SCOPE` | то же | scope | `GIGACHAT_API_PERS` |
 | `STT_PROVIDER` | да | `yandex` / `whisper` | `yandex` |
 | `WHISPER_API_KEY` | если whisper | ключ | `…` |
-| `LLM_TIMEOUT_MS` | нет | таймаут LLM | `4000` |
+| `LLM_TIMEOUT_MS` | нет | таймаут LLM | `8000` |
 | `RATE_LIMIT_PER_MIN` | нет | лимит запросов на пользователя | `30` |
 | `SEED_DEMO` | нет | `0` — не загружать демо-записи в пустую БД | `1` |
 
@@ -124,19 +127,26 @@ npm run dev                 # http://localhost:3000
 
 ## Деплой
 
-Платформа: Fly.io. Один сервис отдаёт API и статику; HTTPS предоставляет платформа.
+Платформа: **Render** (бесплатный тариф, без карты). Один сервис из `Dockerfile` отдаёт API и статику; HTTPS (нужен для микрофона) даёт платформа. Конфиг — [render.yaml](render.yaml).
 
-```bash
-fly launch --no-deploy --copy-config
-fly volumes create data --size 1 --region ams
-fly secrets set YANDEX_API_KEY=... YANDEX_FOLDER_ID=... GIGACHAT_AUTH_KEY=...
-fly deploy
-```
+1. Render → New → Blueprint → этот репозиторий.
+2. Вписать секрет `OPENROUTER_API_KEY`.
+3. Deploy. Проверка: `GET /api/v1/health`.
 
-- Volume смонтирован в `/data`, `DB_PATH=/data/app.db`.
-- При пустой БД автоматически выполняется сид (пользователь `demo`).
-- Проверка: `GET /api/v1/health`.
-- Прогрев перед показом не нужен: `min_machines_running = 1`, `auto_stop_machines = "off"`.
+- Диск на free-тарифе временный: при каждом старте контейнер заново импортирует демо-сценарии и датасет (импорт идемпотентен), созданные в демо записи живут до перезапуска.
+- Free-сервис засыпает после 15 минут без запросов; первый запрос будит его ~1 минуту — перед показом откройте ссылку заранее.
+- Для постоянного хранения есть [fly.toml](fly.toml) (Fly.io + volume `/data`, always-on), но Fly.io требует карту.
+
+## Голос
+
+| Шаг | Как сделано | Без ключей |
+|---|---|---|
+| Запись | `MediaRecorder` (webm/opus), кнопка микрофона, пробел (push-to-talk) или нажатие на шар — режим «свободные руки»: пауза 1,4 с после фразы → отправка | — |
+| Распознавание | на сервере SpeechKit или Whisper (`POST /assistant/voice`) | параллельно идёт распознавание браузера (Web Speech API, Chrome/Edge/Яндекс Браузер) — оно и используется; живая расшифровка видна во время речи |
+| Ответ голосом | `speechSynthesis`, выбирается самый естественный русский голос: нейросетевые Edge («Светлана/Дарья Online (Natural)») → Google → любой ru-RU | бесплатно; без ru-голоса — только текст |
+| Сбои | нет микрофона / нет HTTPS / не распознано → понятная подсказка и подсвеченное поле ввода | — |
+
+Лучше всего звучит в **Microsoft Edge** (нейросетевые голоса). В Firefox нет Web Speech API — без ключа STT голосовой ввод там недоступен, работает текст.
 
 ## Как пользоваться
 
@@ -167,7 +177,9 @@ curl -X POST http://localhost:3000/api/v1/assistant/message \
 | Даты считает код, LLM возвращает структуру | LLM считает даты | детерминизм, тестируемость (D-1…D-25 зелёные) |
 | Локальные дата/время как источник истины + производный UTC | только UTC | запросы по дню, задачи без времени |
 | Гибридный поиск (FTS5 + эмбеддинги, RRF) | только FTS / только вектор | без ключа деградирует до FTS + словаря синонимов; сравнение режимов — после подключения ключа |
-| Три слоя NLU (Yandex → GigaChat → правила) | одна LLM | демо работает с выключенными LLM (E-4) |
+| Цепочка NLU (OpenRouter → Yandex → GigaChat → правила) | одна LLM | демо работает с выключенными LLM (E-4) |
+| OpenRouter, бесплатные NVIDIA Nemotron без reasoning | платные GPT/Claude | бесплатно и без карты; без «размышлений» ответ ~1 с вместо 10–15 с; в списке моделей следующая подхватывает, если первая перегружена |
+| Очистка датасета правилами (падежи, тип, статус) | LLM переписывает записи | детерминированно, отчёт о каждой правке — [data/clean_report.md](data/clean_report.md) |
 | Тип записи определяется правилом, а не LLM | LLM решает | предсказуемость (глоссарий, раздел 2) |
 | Один сервис (API + статика) | Vercel + отдельный бэк | без CORS, один деплой |
 | Шаблонные ответы | LLM генерирует ответ | скорость, контроль, тесты на точный текст |
@@ -183,6 +195,7 @@ curl -X POST http://localhost:3000/api/v1/assistant/message \
 | Strict accuracy (n=65, RuleBased) | 100% |
 | Clarification precision / recall | 100% / 100% |
 | Время ответа p95 (текст, без LLM) | < 10 мс на пайплайн |
+| Время ответа с LLM (OpenRouter, Nemotron) | ~0,7–1,5 с |
 | Поиск: precision@3 fts / semantic / hybrid | не измерено: нет ключа эмбеддингов |
 
 Набор — стартовые 65 фраз из ТЗ (`docs/eval/phrases.csv`), не скрытый hold-out; цифры оптимистичны. Отчёт: `docs/eval/`. Автотесты: 102 (DateResolver D-1…D-25, сценарии T/U/S/B, ошибки E-1…E-15, контракт REST).
@@ -202,8 +215,9 @@ curl -X POST http://localhost:3000/api/v1/assistant/message \
 - Только русский язык
 - Браузерный TTS зависит от установленных голосов; без ru-RU — ответ только текстом
 - Распознавание до 30 с
-- Адаптеры YandexGPT, GigaChat, SpeechKit, Whisper и эмбеддингов написаны по документации, но без ключей не проверены на живых сервисах
-- Датасет на 1000 записей не подключён: используется мини-сид из плана тестов (даты записей 201–210 подобраны вручную)
+- Адаптер OpenRouter проверен на живом сервисе; адаптеры YandexGPT, GigaChat, SpeechKit, Whisper и эмбеддингов написаны по документации, но без ключей не проверены
+- Бесплатные модели OpenRouter имеют дневной лимит запросов и иногда перегружены — тогда отвечает следующая модель или RuleBased
+- Датасет из ТЗ (1000 записей) очищен правилами и загружается пользователю `demo` вместе с демо-сценариями; прошедшие записи помечены выполненными
 
 ## Команда
 
