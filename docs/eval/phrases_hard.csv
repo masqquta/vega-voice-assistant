@@ -1,0 +1,41 @@
+id,phrase,context,expected_intent,expected_slots,category,needs_clarification
+H-1,"слушай, не забудь в субботу ближе к вечеру сказать, чтоб я маме купил цветы",,create_task,"{""type"":""reminder"",""due_date"":""2026-10-24"",""due_time"":""19:00""}",colloquial,false
+H-2,у меня послезавтра созвон с Петровым часика в четыре,,create_meeting,"{""due_date"":""2026-10-23"",""due_time"":""16:00""}",colloquial,false
+H-3,"короче, завтра к девяти утра надо закинуть отчёт начальнику",,create_task,"{""due_date"":""2026-10-22"",""due_time"":""09:00""}",colloquial,false
+H-4,мне бы не забыть оплатить интернет до конца недели,,create_task,"{""due_date"":""2026-10-25""}",colloquial,false
+H-5,нужно бы в понедельник с утра забронировать переговорку,,create_task,"{""due_date"":""2026-10-26"",""due_time"":""09:00""}",colloquial,false
+H-6,запиши: в среду в 11 собеседование с кандидатом,,create_meeting,"{""due_date"":""2026-10-28"",""due_time"":""11:00""}",colloquial,false
+H-7,напомни через полтора часа выключить духовку,,create_task,"{""type"":""reminder"",""due_date"":""2026-10-21"",""due_time"":""16:00""}",relative_dates,false
+H-8,напомни вечером позвонить маме,,create_task,"{""type"":""reminder"",""due_date"":""2026-10-21"",""due_time"":""19:00""}",relative_dates,false
+H-9,до пятницы подготовить смету,,create_task,"{""due_date"":""2026-10-23""}",relative_dates,false
+H-10,напомни мне про стоматолога в следующий вторник в 18,,create_task,"{""type"":""reminder"",""due_date"":""2026-10-27"",""due_time"":""18:00""}",relative_dates,false
+H-11,сегодня в восемь вечера тренировка,,create_task,"{""due_date"":""2026-10-21"",""due_time"":""20:00""}",relative_dates,false
+H-12,запланируй созвон с командой на понедельник на 10:30,,create_meeting,"{""due_date"":""2026-10-26"",""due_time"":""10:30""}",create_meeting,false
+H-13,завтра в час дня встреча с Леной в кафе,,create_meeting,"{""due_date"":""2026-10-22"",""due_time"":""13:00""}",create_meeting,false
+H-14,в четверк в 3 часа дня встреча с бухгалтером,,create_meeting,"{""due_date"":""2026-10-22"",""due_time"":""15:00""}",typos,false
+H-15,напомни завтро в 10 позвонит ивану,,create_task,"{""due_date"":""2026-10-22"",""due_time"":""10:00""}",typos,false
+H-16,чё там по планам на выходные?,,list_events,"{""period_from"":""2026-10-24"",""period_to"":""2026-10-25""}",list_events,false
+H-17,ну и что у меня завтра по встречам,,list_events,"{""period_from"":""2026-10-22"",""period_to"":""2026-10-22""}",list_events,false
+H-18,есть чё на сегодня?,,list_events,"{""period_from"":""2026-10-21""}",list_events,false
+H-19,"расскажи, что меня ждёт на следующей неделе",,list_events,"{""period_from"":""2026-10-26"",""period_to"":""2026-11-01""}",list_events,false
+H-20,покажи мои дела на 30-е,,list_events,"{""period_from"":""2026-10-30""}",list_events,false
+H-21,мне на этой неделе что-то надо было сделать?,,list_events,"{""period_from"":""2026-10-19"",""period_to"":""2026-10-25""}",list_events,false
+H-22,"я там когда-то записывал про отпуск, найди",,search,"{""first_title"":""Оформить заявление на отпуск""}",search,false
+H-23,где у меня было про бухгалтерию,,search,"{""first_title"":""Отправить счёт в бухгалтерию""}",search,false
+H-24,когда мы созванивались с дизайнером?,,search,"{""first_title"":""Созвон с дизайнером по макетам""}",search,false
+H-25,найди что-нибудь про инвесторов,,search,"{""first_title"":""Подготовить презентацию для инвесторов""}",search,false
+H-26,"напомни, что там было с поставщиком",,search,"{""first_title"":""Согласовать договор с поставщиком""}",search,false
+H-27,когда была встреча по деньгам?,,search,"{""first_title"":""Встреча с Иваном Петровым по бюджету""}",semantic,false
+H-28,"покажи всё, что связано с макетами",,search,"{""first_title"":""Созвон с дизайнером по макетам""}",search,false
+H-29,"найди, где я про зарплату и финансы писал",,search,"{""first_title"":""Встреча с Иваном Петровым по бюджету""}",semantic,false
+H-30,закинь на завтра встречу с Ольгой,,create_meeting,"{""missing"":[""time""]}",clarification,true
+H-31,давай часа в три,after:закинь на завтра встречу с Ольгой,create_meeting,"{""due_date"":""2026-10-22"",""due_time"":""15:00""}",context,false
+H-32,"ой, перенеси её на пятницу",after:Добавь встречу с командой завтра в 15:00,update,"{""due_date"":""2026-10-23"",""due_time"":""15:00""}",context,false
+H-33,"отметь, что аренду офиса я уже оплатил",,complete,"{""title"":""Оплатить аренду офиса""}",context,false
+H-34,"я вроде договор с поставщиком согласовал, закрой задачу",,complete,"{""title"":""Согласовать договор с поставщиком""}",context,false
+H-35,напомни,,create_task,{},clarification,true
+H-36,встреча в пятницу,,create_meeting,{},clarification,true
+H-37,какая погода в Нижнем?,,unknown,{},off_topic,false
+H-38,расскажи анекдот,,unknown,{},off_topic,false
+H-39,эээ ну это самое,,unknown,{},noise,false
+H-40,а созвон с дизайнером по макетам удали,,delete,{},context,false

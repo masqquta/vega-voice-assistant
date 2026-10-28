@@ -33,6 +33,7 @@ export const config = {
   sttProvider: env.STT_PROVIDER || "yandex",
   whisperApiKey: env.WHISPER_API_KEY || "",
   llmTimeoutMs: Number(env.LLM_TIMEOUT_MS || 4000),
+  nluCascade: env.NLU_CASCADE !== "0",          // 0 — всегда спрашивать LLM (для сравнения в eval)
   rateLimitPerMin: Number(env.RATE_LIMIT_PER_MIN || 30),
   seedDemo: env.SEED_DEMO !== "0",
 };

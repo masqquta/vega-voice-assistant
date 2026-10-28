@@ -13,12 +13,13 @@ import { seedMini } from "../server/db/seed.js";
 import { createNlu } from "../server/nlu/adapter.js";
 import { createAssistant } from "../server/services/assistant.js";
 import { nowIn } from "../server/dates/resolver.js";
+import { config } from "../server/config.js";
 
 const FILE = process.argv.slice(2).find((a) => !a.startsWith("--")) || "docs/eval/phrases.csv";
 const TZ = "Europe/Moscow";
 const NOW = nowIn(TZ, "2026-10-21T14:30:00+03:00");
 
-const nlu = createNlu();
+const nlu = createNlu({ cascade: config.nluCascade });
 const rows = parseCsv(fs.readFileSync(FILE, "utf8"));
 const results = [];
 
@@ -75,6 +76,7 @@ const lines = [
   `| Clarification precision | ${pct(tp, tp + fp)} | ≥ 90% |`,
   `| Clarification recall | ${pct(tp, tp + fn)} | — |`,
   `| Latency p95 (весь пайплайн) | ${p95} мс | ≤ 2 с |`,
+  `| Доля фраз, понятых LLM (каскад ${config.nluCascade ? "вкл" : "выкл"}) | ${pct(results.filter((x) => x.provider !== "rulebased").length, n)} | — |`,
   "",
   "| Категория | Фраз | Intent | Strict |",
   "|---|---|---|---|",

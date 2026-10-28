@@ -5,11 +5,31 @@ import { config } from "../config.js";
 import { buildMessages } from "./prompt.js";
 import { extractJson, validateNlu } from "./schema.js";
 import { parseRuleBased } from "./rulebased.js";
+import { word } from "./normalize.js";
 import * as openrouter from "./openrouter.js";
 import * as yandex from "./yandex.js";
 import * as gigachat from "./gigachat.js";
 
 const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+// Каскад «сначала правила»: бесплатный слой отвечает сам, только если фраза «чистая» — на ней правила
+// не ошибаются (docs/eval: 100% на базовом наборе). Признаки «грязной» фразы подобраны по ошибкам
+// правил на docs/eval/phrases_hard.csv: разговорные вставки, «полтора», «30-е», опечатка в дне
+// недели (похоже на дату, а даты нет), вопрос, понятый как создание задачи, длинная фраза.
+const COLLOQUIAL = word("слушай|короче|че|чо|типа|вроде|ну|бы|чтоб|ближе|полтора|полчаса|связан[а-я]*|что-нибудь|когда-то|ой|эээ|э+|блин", "iu");
+const DATEISH = /(?<![а-я])(понед|вторн|сред[аеуы]|четве|пятн|субб|воскр|январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентяб|октяб|ноябр|декаб|завтр|послезав)/iu;
+const ORDINAL_DAY = /\d+-?(е|го|ое)(?![а-я])/iu;
+
+/** Можно ли отдать ответ правил без LLM. */
+export function rulesConfident(norm, rb) {
+  const m = norm.match;
+  if (rb.intent === "unknown" || rb.confidence < 0.9) return false;
+  if (COLLOQUIAL.test(m) || ORDINAL_DAY.test(m) || m.split(/\s+/).length > 10) return false;
+  if (m.includes("?") && rb.intent.startsWith("create_")) return false;
+  const kind = rb.slots?.date?.kind || "none";
+  if (rb.intent !== "clarify_answer" && kind === "none" && DATEISH.test(m)) return false;   // «в четверк» — дата не распознана
+  return true;
+}
 
 function withTimeout(fn, ms) {
   const ctl = new AbortController();
@@ -21,7 +41,7 @@ function withTimeout(fn, ms) {
  * @param {{providers?: {name: string, available: () => boolean, complete: Function}[], timeoutMs?: number,
  *          log?: (event: object) => void}} opts
  */
-export function createNlu({ providers = [openrouter, yandex, gigachat], timeoutMs = config.llmTimeoutMs, log = () => {} } = {}) {
+export function createNlu({ providers = [openrouter, yandex, gigachat], timeoutMs = config.llmTimeoutMs, log = () => {}, cascade = false } = {}) {
   const status = Object.fromEntries(providers.map((p) => [p.name, p.available() ? "configured" : "unknown"]));
 
   async function viaLlm(p, norm, ctx) {
@@ -52,6 +72,10 @@ export function createNlu({ providers = [openrouter, yandex, gigachat], timeoutM
     status,
     /** @returns {Promise<object>} NluResult + provider */
     async parse(norm, ctx = {}) {
+      if (cascade) {
+        const rb = validateNlu(parseRuleBased(norm, ctx));
+        if (rulesConfident(norm, rb)) return { ...rb, provider: "rulebased" };
+      }
       for (const p of providers) {
         if (!p.available()) continue;
         const res = await viaLlm(p, norm, ctx);

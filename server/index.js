@@ -16,7 +16,7 @@ if (config.seedDemo) {
   const seeded = seedIfEmpty(db, "demo", { tz: config.tzDefault });
   if (seeded) log({ event: "seeded", items: seeded.size, user: "demo" });
 }
-const nlu = createNlu({ log });
+const nlu = createNlu({ log, cascade: config.nluCascade });
 const stt = createStt();
 const embedder = createEmbedder();
 const assistant = createAssistant({ db, nlu, embedder, log });
