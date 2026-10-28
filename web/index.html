@@ -103,7 +103,7 @@
   <section class="agenda-card" aria-labelledby="agendaTitle">
     <div class="agenda-head">
       <div>
-        <h2 id="agendaTitle">Ближайшие 7 дней</h2>
+        <h2 id="agendaTitle">Сегодня и завтра</h2>
         <p class="today" id="today"></p>
       </div>
       <div class="agenda-tools">
@@ -113,6 +113,28 @@
     </div>
     <div class="cal-hint" id="calHint" hidden></div>
     <div class="agenda" id="agenda"></div>
+  </section>
+
+  <!-- Календарь на месяц: точки-дела в днях; клик по дню — его дела и быстрое добавление задачи -->
+  <section class="agenda-card month-card" aria-labelledby="monthTitle">
+    <div class="agenda-head">
+      <div>
+        <h2 id="monthTitle">Календарь</h2>
+        <p class="today" id="monthLabel"></p>
+      </div>
+      <div class="agenda-tools">
+        <button class="tool" id="monthPrev" type="button" aria-label="Предыдущий месяц">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg>
+        </button>
+        <button class="tool text" id="monthNow" type="button">Сегодня</button>
+        <button class="tool" id="monthNext" type="button" aria-label="Следующий месяц">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.6 16.6 10 18l6-6-6-6-1.4 1.4 4.6 4.6z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="month-week" aria-hidden="true"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+    <div class="month-grid" id="monthGrid"></div>
+    <div class="day-panel" id="dayPanel" aria-live="polite" hidden></div>
   </section>
 </main>
 

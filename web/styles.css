@@ -185,6 +185,50 @@ button, input { font: inherit; color: inherit; }
 .row.done .title { text-decoration: line-through; color: var(--faint); }
 .empty { color: var(--faint); margin: 12px 0 0; }
 
+/* ---------- календарь на месяц ---------- */
+.month-card { margin-top: 18px; }
+.month-card .tool svg { width: 20px; height: 20px; }
+.month-week, .month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.month-week { margin-top: 18px; padding-bottom: 6px; }
+.month-week span { font: 500 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding-left: 10px; }
+.month-week span:nth-child(n+6) { color: var(--faint); }
+.cell {
+  display: flex; flex-direction: column; gap: 4px; min-height: 96px; padding: 8px 8px 6px 10px; min-width: 0;
+  border: 1px solid var(--line); border-radius: 16px; background: var(--bg); color: var(--ink);
+  font: inherit; text-align: left; cursor: pointer; transition: background .15s, border-color .15s;
+}
+.cell:hover { background: var(--surface); }
+.cell .n { font: 500 13px var(--mono); color: var(--muted); }
+.cell.out { background: transparent; border-color: transparent; }
+.cell.out .n { color: var(--faint); }
+.cell.now .n { display: inline-grid; place-items: center; width: 24px; height: 24px; margin: -3px 0 -1px -5px; border-radius: 50%; background: var(--ink); color: #fff; }
+.cell[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.cell .it { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 1.25; min-width: 0; }
+.cell .it::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--task); flex: none; }
+.cell .it[data-type="reminder"]::before { background: var(--reminder); }
+.cell .it[data-type="meeting"]::before { background: var(--meeting); }
+.cell .it span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cell .it.done span { text-decoration: line-through; color: var(--faint); }
+.cell .more { font-size: 11px; color: var(--muted); padding-left: 12px; }
+.cell .dots { display: none; gap: 3px; flex-wrap: wrap; }
+.cell .dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--task); }
+.cell .dots i[data-type="reminder"] { background: var(--reminder); }
+.cell .dots i[data-type="meeting"] { background: var(--meeting); }
+.day-panel { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.day-panel h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+.day-panel h3::first-letter { text-transform: uppercase; }
+.add-task { display: flex; gap: 8px; margin-top: 10px; }
+.add-task input {
+  height: 42px; border: 1px solid var(--line); border-radius: 999px; padding: 0 16px; background: var(--bg);
+  font: inherit; color: var(--ink); min-width: 0;
+}
+.add-task input[type="text"] { flex: 1; }
+.add-task input[type="time"] { width: 112px; padding: 0 12px; font: 500 13px var(--mono); }
+.add-task input:focus { outline: none; border-color: var(--accent); }
+.add-task button { height: 42px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--ink); color: #fff; font: inherit; font-weight: 500; cursor: pointer; }
+.add-task button:disabled { opacity: .45; cursor: default; }
+.add-note { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes pulse { from { opacity: .8; transform: scale(1); } to { opacity: 0; transform: scale(1.35); } }
 @media (prefers-reduced-motion: reduce) {
@@ -222,6 +266,15 @@ button, input { font: inherit; color: inherit; }
   .agenda-card { padding: 20px 16px 22px; border-radius: 26px; }
   .agenda-head h2 { font-size: 20px; }
   .agenda { grid-template-columns: 1fr; }
+  .month-week, .month-grid { gap: 3px; }
+  .month-week span { padding-left: 0; text-align: center; font-size: 10px; letter-spacing: .04em; }
+  .cell { min-height: 52px; padding: 6px 4px; border-radius: 12px; align-items: center; }
+  .cell.now .n { margin: -3px 0 -1px; }
+  .cell .it, .cell .more { display: none; }
+  .cell .dots { display: flex; justify-content: center; }
+  .add-task { flex-wrap: wrap; }
+  .add-task input[type="text"] { flex-basis: 100%; }
+  .add-task input[type="time"] { flex: 1; }
 }
 /* низкий экран телефона в ландшафте — модель и чат рядом, как на десктопе */
 @media (max-width: 900px) and (max-height: 500px) and (orientation: landscape) {

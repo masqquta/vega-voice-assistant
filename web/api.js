@@ -49,8 +49,9 @@ export function createApi(id, { mock = false } = {}) {
       f.append("tz", tz);
       return request("POST", "/assistant/voice", f, true);
     },
-    events: (from, to) => request("GET", `/events?from=${from}&to=${to}&tz=${encodeURIComponent(tz)}`),
+    events: (from, to, status = "open") => request("GET", `/events?from=${from}&to=${to}&status=${status}&tz=${encodeURIComponent(tz)}`),
     complete: (itemId, done = true) => request("PATCH", `/tasks/${itemId}/complete`, { done }),
+    createTask: (task) => request("POST", "/tasks", { ...task, tz }),
   };
 }
 
@@ -71,5 +72,6 @@ function mockApi() {
     voice: async () => load("stt_unavailable"),
     events: async () => load("events"),
     complete: async () => ({}),
+    createTask: async (task) => ({ item: { id: Date.now(), type: "task", status: "open", ...task } }),
   };
 }

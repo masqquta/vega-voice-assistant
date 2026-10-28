@@ -745,43 +745,136 @@ hero.orb.addEventListener("click", () => (recording ? stopRecording() : startRec
 heroIdle();
 addEventListener("keyup", (e) => { if (e.code === "Space" && !typing() && recording) { e.preventDefault(); stopRecording(); } });
 
-// ---------- план на 7 дней ----------
+// ---------- сегодня и завтра ----------
+/** Строка дела с галочкой «выполнено» — общая для плана и календаря. */
+function rowFor(it, onToggle) {
+  const row = el("label", `row${it.status === "done" ? " done" : ""}`);
+  row.dataset.type = it.type;
+  const box = el("input");
+  box.type = "checkbox"; box.checked = it.status === "done";
+  box.setAttribute("aria-label", `Выполнено: ${it.title}`);
+  box.addEventListener("change", async () => {
+    try { await api.complete(it.id, box.checked); it.status = box.checked ? "done" : "open"; row.classList.toggle("done", box.checked); onToggle?.(); }
+    catch { box.checked = !box.checked; }
+  });
+  row.append(box, el("span", "t", it.due_time || "—"), el("span", "k"), el("span", "title", it.title));
+  return row;
+}
+
 async function loadAgenda() {
-  const from = new Date();
-  const to = new Date(Date.now() + 6 * 864e5);
+  const today = isoLocal(new Date()), tomorrow = isoLocal(new Date(Date.now() + 864e5));
+  loadMonth();                                                   // календарь ниже обновляем вместе с планом
   let data;
-  try { data = await api.events(isoLocal(from), isoLocal(to)); }
+  try { data = await api.events(today, tomorrow); }
   catch { ui.agenda.replaceChildren(el("p", "empty", "План не загрузился.")); return; }
   reminders.items = data.items;
-  if (!data.items.length) { ui.agenda.replaceChildren(el("p", "empty", "На неделю ничего не запланировано.")); return; }
-  const byDay = new Map();
-  for (const it of data.items) {
-    if (!byDay.has(it.due_date)) byDay.set(it.due_date, []);
-    byDay.get(it.due_date).push(it);
-  }
-  const today = isoLocal(new Date()), tomorrow = isoLocal(new Date(Date.now() + 864e5));
-  const blocks = [];
-  for (const [day, list] of byDay) {
+  const blocks = [today, tomorrow].map((day) => {
     const sec = el("section", "day");
-    sec.append(el("h3", null, day === today ? "Сегодня" : day === tomorrow ? "Завтра" : fmtDay.format(fromIso(day))));
-    for (const it of list) {
-      const row = el("label", `row${it.status === "done" ? " done" : ""}`);
-      row.dataset.type = it.type;
-      const box = el("input");
-      box.type = "checkbox"; box.checked = it.status === "done";
-      box.setAttribute("aria-label", `Выполнено: ${it.title}`);
-      box.addEventListener("change", async () => {
-        try { await api.complete(it.id, box.checked); row.classList.toggle("done", box.checked); }
-        catch { box.checked = !box.checked; }
-      });
-      row.append(box, el("span", "t", it.due_time || "—"), el("span", "k"), el("span", "title", it.title));
-      sec.append(row);
-    }
-    blocks.push(sec);
-  }
+    sec.append(el("h3", null, `${day === today ? "Сегодня" : "Завтра"}, ${fmtDm.format(fromIso(day))}`));
+    const list = data.items.filter((it) => it.due_date === day);
+    if (!list.length) sec.append(el("p", "empty", "Ничего не запланировано."));
+    for (const it of list) sec.append(rowFor(it, loadMonth));
+    return sec;
+  });
   ui.agenda.replaceChildren(...blocks);
 }
 $("refresh").addEventListener("click", loadAgenda);
+
+// ---------- календарь на месяц ----------
+const fmtMonth = new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric" });
+const fmtDm = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" });
+const month = { first: new Date(new Date().getFullYear(), new Date().getMonth(), 1), selected: null, items: [], seq: 0 };
+const MAX_IN_CELL = 2;
+
+/** Сетка с понедельника: от понедельника до 1-го числа и до воскресенья после последнего. */
+function monthRange(first) {
+  const start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
+  const last = new Date(first.getFullYear(), first.getMonth() + 1, 0);
+  const end = new Date(last); end.setDate(last.getDate() + (6 - ((last.getDay() + 6) % 7)));
+  return { start, end };
+}
+
+async function loadMonth() {
+  const seq = ++month.seq;                                       // быстрые клики ‹ › — рисуем только последний ответ
+  const { start, end } = monthRange(month.first);
+  $("monthLabel").textContent = fmtMonth.format(month.first);
+  try { month.items = (await api.events(isoLocal(start), isoLocal(end), "all")).items; }
+  catch { month.items = []; }
+  if (seq !== month.seq) return;
+  renderMonth();
+}
+
+function renderMonth() {
+  const { start, end } = monthRange(month.first);
+  const byDay = new Map();
+  for (const it of month.items) (byDay.get(it.due_date) || byDay.set(it.due_date, []).get(it.due_date)).push(it);
+  const today = isoLocal(new Date()), cells = [];
+  for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const iso = isoLocal(d), list = byDay.get(iso) || [];
+    const cell = el("button", `cell${d.getMonth() !== month.first.getMonth() ? " out" : ""}${iso === today ? " now" : ""}`);
+    cell.type = "button";
+    cell.setAttribute("aria-pressed", String(iso === month.selected));
+    cell.setAttribute("aria-label", `${fmtDay.format(d)}${list.length ? `, дел: ${list.length}` : ""}`);
+    cell.append(el("span", "n", String(d.getDate())));
+    for (const it of list.slice(0, MAX_IN_CELL)) {
+      const row = el("span", `it${it.status === "done" ? " done" : ""}`);
+      row.dataset.type = it.type;
+      row.append(el("span", null, it.title));
+      cell.append(row);
+    }
+    if (list.length > MAX_IN_CELL) cell.append(el("span", "more", `ещё ${list.length - MAX_IN_CELL}`));
+    if (list.length) {                                            // на телефоне вместо названий — точки
+      const dots = el("span", "dots");
+      for (const it of list.slice(0, 4)) { const i = el("i"); i.dataset.type = it.type; dots.append(i); }
+      cell.append(dots);
+    }
+    cell.addEventListener("click", () => selectDay(iso === month.selected ? null : iso));
+    cells.push(cell);
+  }
+  $("monthGrid").replaceChildren(...cells);
+  renderDayPanel();
+}
+
+function selectDay(iso) {
+  month.selected = iso;
+  renderMonth();
+  if (iso) $("dayPanel").scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function renderDayPanel() {
+  const panel = $("dayPanel"), iso = month.selected;
+  if (!iso) { panel.hidden = true; return; }
+  const list = month.items.filter((it) => it.due_date === iso);
+  const form = el("form", "add-task");
+  const title = el("input"); title.type = "text"; title.maxLength = 200; title.required = true;
+  title.placeholder = "Новая задача"; title.setAttribute("aria-label", "Название задачи");
+  const time = el("input"); time.type = "time"; time.setAttribute("aria-label", "Время (необязательно)");
+  const add = el("button", null, "Добавить"); add.type = "submit";
+  const note = el("p", "add-note");
+  form.append(title, time, add);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const text = title.value.trim();
+    if (!text) return;
+    add.disabled = true;
+    try {
+      await api.createTask({ title: text.charAt(0).toUpperCase() + text.slice(1), due_date: iso, due_time: time.value || null });
+      await loadAgenda();                                         // план «сегодня/завтра» и месяц
+      requestAnimationFrame(() => $("dayPanel").querySelector("input[type=text]")?.focus());
+    } catch (err) { note.textContent = `Не получилось добавить: ${err.message}`; add.disabled = false; }
+  });
+  panel.replaceChildren(
+    el("h3", null, fmtDay.format(fromIso(iso))),
+    ...(list.length ? list.map((it) => rowFor(it, renderMonth)) : [el("p", "empty", "Дел нет — добавьте первое.")]),
+    form, note,
+  );
+  panel.hidden = false;
+}
+
+const shiftMonth = (n) => { month.first = new Date(month.first.getFullYear(), month.first.getMonth() + n, 1); month.selected = null; loadMonth(); };
+$("monthPrev").addEventListener("click", () => shiftMonth(-1));
+$("monthNext").addEventListener("click", () => shiftMonth(1));
+$("monthNow").addEventListener("click", () => { month.first = new Date(new Date().getFullYear(), new Date().getMonth(), 1); selectDay(isoLocal(new Date())); loadMonth(); });
 
 // ---------- подписка в календаре: ссылка .ics, календарь сам её перечитывает ----------
 $("calendar").addEventListener("click", async () => {
