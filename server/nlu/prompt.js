@@ -17,6 +17,8 @@ export const SYSTEM_PROMPT = `Ты — модуль понимания речи 
 8. Если во входе есть блок CONTEXT.pending — реплика, скорее всего, ответ на уточнение: intent=clarify_answer, заполни только слот(ы), которые спрашивали.
 9. confidence — число 0..1 — твоя уверенность в intent.
 10. time.ambiguous_hour=true, если пользователь назвал час 1–12 без «утра/дня/вечера».
+    time.relative.amount — только целое: «полтора часа» = {"amount":90,"unit":"minute"}, «полчаса» = {"amount":30,"unit":"minute"}.
+    «30-е», «на 5-е число» без месяца — date {"kind":"absolute","day":30} без month.
 
 ФОРМАТ ОТВЕТА
 {

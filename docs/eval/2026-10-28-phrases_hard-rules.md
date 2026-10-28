@@ -8,7 +8,8 @@
 | Strict accuracy | 67.5% (27/40) | ≥ 85% (RuleBased ≥ 65%) |
 | Clarification precision | 60.0% | ≥ 90% |
 | Clarification recall | 100.0% | — |
-| Latency p95 (весь пайплайн) | 5 мс | ≤ 2 с |
+| Latency p95 (весь пайплайн) | 13 мс | ≤ 2 с |
+| Доля фраз, понятых LLM (каскад вкл) | 0.0% | — |
 
 | Категория | Фраз | Intent | Strict |
 |---|---|---|---|

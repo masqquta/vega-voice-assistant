@@ -40,10 +40,11 @@ export function resolveDate(date, now, { type = "task", mode = "create" } = {}) 
       return n >= 1 ? one(today.plus({ days: n })) : { date: null, period: null, need: null };
     }
     case "absolute": {
-      const d = Number(date.day), m = Number(date.month);
+      const d = Number(date.day), m = Number(date.month) || today.month;   // «на 30-е» — месяц текущий
       let cand = DateTime.fromObject({ year: date.year || today.year, month: m, day: d }, { zone: now.zone });
       if (!cand.isValid) return { date: null, period: null, need: null };
-      if (!date.year && cand < today) cand = cand.plus({ years: 1 });   // прошла — значит в следующем году
+      if (!date.month && cand < today) cand = cand.plus({ months: 1 });     // число прошло — значит в следующем месяце
+      else if (!date.year && cand < today) cand = cand.plus({ years: 1 });  // прошла — значит в следующем году
       return one(cand);
     }
     case "this_week":

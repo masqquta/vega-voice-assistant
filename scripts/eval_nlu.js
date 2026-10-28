@@ -14,12 +14,16 @@ import { createNlu } from "../server/nlu/adapter.js";
 import { createAssistant } from "../server/services/assistant.js";
 import { nowIn } from "../server/dates/resolver.js";
 import { config } from "../server/config.js";
+import { createEmbedder, backfill } from "../server/services/embeddings.js";
 
 const FILE = process.argv.slice(2).find((a) => !a.startsWith("--")) || "docs/eval/phrases.csv";
 const TZ = "Europe/Moscow";
 const NOW = nowIn(TZ, "2026-10-21T14:30:00+03:00");
 
 const nlu = createNlu({ cascade: config.nluCascade });
+// поиск в замере — как на сервере: гибрид слова + смысл (EMBEDDINGS=off — только слова)
+const embedder = createEmbedder();
+await embedder?.warmup?.();
 const rows = parseCsv(fs.readFileSync(FILE, "utf8"));
 const results = [];
 
@@ -28,7 +32,8 @@ for (const r of rows) {
   seedMini(db, "eval", { tz: TZ, nowSec: Math.floor(NOW.toSeconds()) });
   let intent = null;
   const spy = { status: nlu.status, parse: async (n, c) => { const x = await nlu.parse(n, c); intent = x.intent; return x; } };
-  const a = createAssistant({ db, nlu: spy });
+  await backfill(db, embedder);
+  const a = createAssistant({ db, nlu: spy, embedder });
   const say = (text) => a.handle({ requestId: "eval", userId: "eval", sessionId: "s", text, tz: TZ, now: NOW });
   for (const pre of (r.context.match(/^after:(.*)$/)?.[1] || "").split("|").map((s) => s.trim()).filter(Boolean)) await say(pre);
   const t0 = Date.now();
@@ -92,7 +97,9 @@ const lines = [
 if (!results.some((x) => !x.pass)) lines.push("Нет.");
 const report = lines.join("\n") + "\n";
 fs.mkdirSync("docs/eval", { recursive: true });
-const outFile = `docs/eval/${new Date().toISOString().slice(0, 10)}-${providers.replace(/[^a-z]+/g, "-")}.md`;
+const setName = FILE.replace(/^.*\/|\.csv$/g, "");
+const mode = !results.some((x) => x.provider !== "rulebased") ? "rules" : config.nluCascade ? "cascade" : "llm";
+const outFile = `docs/eval/${new Date().toISOString().slice(0, 10)}-${setName}-${mode}.md`;
 fs.writeFileSync(outFile, report);
 console.log(report);
 console.log(`Отчёт: ${outFile}`);

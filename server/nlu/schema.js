@@ -64,7 +64,7 @@ export function validateNlu(raw) {
   for (const k of ["date", "new_date"]) {
     const d = s[k];
     if ((d.kind === "weekday" && !d.weekday) || (d.kind === "in_days" && !d.offset) ||
-        (d.kind === "absolute" && !(d.day && d.month))) s[k] = { kind: "none" };
+        (d.kind === "absolute" && !d.day)) s[k] = { kind: "none" };   // число без месяца допустимо: «на 30-е»
   }
   return parsed.data;
 }
