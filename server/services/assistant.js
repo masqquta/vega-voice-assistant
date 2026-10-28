@@ -21,7 +21,7 @@ const hhmm = (t) => `${String(t.hour).padStart(2, "0")}:${String(t.minute).padSt
  * @param {{db: import("better-sqlite3").Database, nlu: {parse: Function}, embedder?: object|null,
  *          log?: (event: object) => void}} deps
  */
-export function createAssistant({ db, nlu, embedder = null, log = () => {} }) {
+export function createAssistant({ db, nlu, embedder = null, humanize = null, log = () => {} }) {
   const clarify = (action, missing, reply, data = {}) => ({ action, status: "need_clarification", data, reply, missing });
 
   function embedLater(row) {
@@ -349,6 +349,9 @@ export function createAssistant({ db, nlu, embedder = null, log = () => {} }) {
     const nluRes = await nlu.parse(norm, { pending: ctx.pending, last_items: brief });
     const env = { db, userId, tz, now, nowSec, norm, ctx };
     const out = await route(nluRes, env);
+    // шаблон — точный ответ; LLM делает его живым, а при потере фактов остаётся шаблон (reply/humanize.js)
+    const template = out.reply;
+    if (humanize) out.reply = await humanize(out, norm.original);
     ctx.last_intent = out.action;
     saveContext(db, sessionId, userId, ctx, nowSec);
     const latency = Date.now() - started;
@@ -361,6 +364,7 @@ export function createAssistant({ db, nlu, embedder = null, log = () => {} }) {
       missing_slots: out.missing || [],
       context: { session_id: sessionId, last_items: ctx.last_items, pending: ctx.pending },
       meta: { transcript, nlu_provider: nluRes.provider, latency_ms: latency,
+        ...(out.reply !== template ? { reply_template: template } : {}),
         // «как я понял»: что извлекла NLU (до расчёта дат кодом) — для прозрачности в интерфейсе
         nlu: { intent: nluRes.intent, confidence: nluRes.confidence, slots: nluRes.slots } },
       ...(out.error ? { error: out.error } : {}),

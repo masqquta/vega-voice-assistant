@@ -45,7 +45,8 @@ export const config = {
   embeddings: env.EMBEDDINGS || "local",        // local | yandex | off
   semThreshold: env.SEM_THRESHOLD ? Number(env.SEM_THRESHOLD) : null,
   modelCacheDir: env.MODEL_CACHE_DIR || ".cache/models",
-  nluCascade: env.NLU_CASCADE !== "0",          // 0 — всегда спрашивать LLM (для сравнения в eval)
+  nluCascade: env.NLU_CASCADE !== "0",
+  humanize: env.HUMANIZE !== "0",               // 0 — отвечать шаблонами без перефразирования LLM          // 0 — всегда спрашивать LLM (для сравнения в eval)
   rateLimitPerMin: Number(env.RATE_LIMIT_PER_MIN || 30),
   seedDemo: env.SEED_DEMO !== "0",
 };

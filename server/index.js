@@ -6,6 +6,8 @@ import { createNlu } from "./nlu/adapter.js";
 import { createStt } from "./stt/index.js";
 import { createEmbedder, backfill } from "./services/embeddings.js";
 import { createAssistant } from "./services/assistant.js";
+import { createHumanizer } from "./reply/humanize.js";
+import * as groq from "./nlu/groq.js";
 import { createApp } from "./app.js";
 
 // логи — JSON-строки в stdout (их собирает хостинг); стектрейс пользователю не уходит никогда
@@ -19,7 +21,8 @@ if (config.seedDemo) {
 const nlu = createNlu({ log, cascade: config.nluCascade });
 const stt = createStt();
 const embedder = createEmbedder();
-const assistant = createAssistant({ db, nlu, embedder, log });
+const humanize = config.humanize ? createHumanizer({ llm: groq, log }) : null;
+const assistant = createAssistant({ db, nlu, embedder, humanize, log });
 const app = createApp({ db, assistant, nlu, stt, embedder, config, log });
 
 app.listen(config.port, () => {

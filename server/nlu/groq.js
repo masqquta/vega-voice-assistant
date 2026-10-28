@@ -21,7 +21,7 @@ export function parseReset(s) {
 }
 
 /** @param {{role: string, text: string}[]} messages  @returns {Promise<string>} */
-export async function complete(messages, { signal } = {}) {
+export async function complete(messages, { signal, json = true, maxTokens = 400 } = {}) {
   let lastErr = null;
   for (const model of config.groq.models) {
     if (pausedUntil.get(model) > Date.now()) continue;
@@ -31,9 +31,9 @@ export async function complete(messages, { signal } = {}) {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${config.groq.apiKey}` },
       body: JSON.stringify({
         model,
-        temperature: 0,
-        max_tokens: 400,
-        response_format: { type: "json_object" },     // модель обязана вернуть JSON
+        temperature: json ? 0 : 0.6,
+        max_tokens: maxTokens,
+        ...(json ? { response_format: { type: "json_object" } } : {}),   // для NLU модель обязана вернуть JSON
         ...reasoning(model),
         messages: messages.map((m) => ({ role: m.role, content: m.text })),
       }),
