@@ -1,0 +1,24 @@
+{
+  "request_id": "r_mock9",
+  "action": "unknown",
+  "status": "error",
+  "data": {},
+  "reply_text": "Не поняла запрос. Например: напомни завтра в 10 позвонить Ивану, или: что у меня сегодня?",
+  "missing_slots": [],
+  "context": {
+    "session_id": "s_mock",
+    "last_items": [
+      1
+    ],
+    "pending": null
+  },
+  "meta": {
+    "transcript": null,
+    "nlu_provider": "rulebased",
+    "latency_ms": 0
+  },
+  "error": {
+    "code": "UNKNOWN_INTENT",
+    "message": "intent not recognized"
+  }
+}

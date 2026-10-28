@@ -1,0 +1,22 @@
+{
+  "request_id": "r_mock",
+  "action": "unknown",
+  "status": "error",
+  "data": {},
+  "reply_text": "Голосовой ввод сейчас недоступен. Напишите запрос текстом.",
+  "missing_slots": [],
+  "context": {
+    "session_id": "s_mock",
+    "last_items": [],
+    "pending": null
+  },
+  "meta": {
+    "transcript": null,
+    "nlu_provider": null,
+    "latency_ms": 0
+  },
+  "error": {
+    "code": "STT_UNAVAILABLE",
+    "message": "speech recognition unavailable"
+  }
+}

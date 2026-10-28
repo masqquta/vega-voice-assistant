@@ -1,0 +1,54 @@
+{
+  "request_id": "r_mock6",
+  "action": "list_events",
+  "status": "ok",
+  "data": {
+    "period": {
+      "from": "2026-10-21",
+      "to": "2026-10-21"
+    },
+    "items": [
+      {
+        "id": 12,
+        "type": "meeting",
+        "title": "Планёрка",
+        "notes": null,
+        "due_date": "2026-10-21",
+        "due_time": "16:00",
+        "due_at": "2026-10-21T16:00:00+03:00",
+        "duration_min": 60,
+        "participants": [],
+        "status": "open",
+        "created_at": "2026-10-21T14:30:00+03:00"
+      },
+      {
+        "id": 13,
+        "type": "task",
+        "title": "Отправить отчёт",
+        "notes": null,
+        "due_date": "2026-10-21",
+        "due_time": null,
+        "due_at": null,
+        "duration_min": null,
+        "participants": [],
+        "status": "open",
+        "created_at": "2026-10-21T14:30:00+03:00"
+      }
+    ],
+    "total": 2
+  },
+  "reply_text": "Сегодня два дела: в 16:00 — планёрка, и без времени — отправить отчёт.",
+  "missing_slots": [],
+  "context": {
+    "session_id": "s_mock",
+    "last_items": [
+      14
+    ],
+    "pending": null
+  },
+  "meta": {
+    "transcript": null,
+    "nlu_provider": "rulebased",
+    "latency_ms": 0
+  }
+}

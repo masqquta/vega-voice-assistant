@@ -1,0 +1,23 @@
+# Один сервис: API (/api/v1) + статика фронта. SQLite живёт на volume /data (DB_PATH=/data/app.db).
+FROM node:20-bookworm-slim
+
+# ffmpeg — перекодирование webm/mp4 → ogg/opus для SpeechKit; ca-certificates + сертификат НУЦ Минцифры для GigaChat
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl \
+ && (curl -fsSL https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt -o /usr/local/share/ca-certificates/russian_trusted_root_ca.crt || echo "НУЦ недоступен — GigaChat без сертификата") \
+ && update-ca-certificates \
+ && apt-get purge -y curl && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+COPY server ./server
+COPY web ./web
+COPY scripts ./scripts
+COPY data/seed_mini.json ./data/seed_mini.json
+
+ENV NODE_ENV=production PORT=3000 DB_PATH=/data/app.db TZ_DEFAULT=Europe/Moscow
+EXPOSE 3000
+# при старте: миграции и автосид пустой БД выполняет сам сервер
+CMD ["node", "server/index.js"]

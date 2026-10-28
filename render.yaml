@@ -1,0 +1,22 @@
+# Render Blueprint: бесплатный web-сервис из Dockerfile, HTTPS из коробки, карта не нужна.
+# На free-тарифе диск временный и сервис засыпает через 15 мин без запросов: при пустой БД сервер
+# сам загружает демо-записи (SEED_DEMO=1), а /api/v1/health будит его перед демо.
+services:
+  - type: web
+    name: vega-assistant
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /app/data/app.db
+      - key: TZ_DEFAULT
+        value: Europe/Moscow
+      - key: LLM_TIMEOUT_MS
+        value: "8000"
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODELS
+        value: google/gemma-4-31b-it:free,nvidia/nemotron-3-ultra-550b-a55b:free

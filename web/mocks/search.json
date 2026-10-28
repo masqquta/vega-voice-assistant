@@ -1,0 +1,41 @@
+{
+  "request_id": "r_mock7",
+  "action": "search",
+  "status": "ok",
+  "data": {
+    "query": "презентацию",
+    "results": [
+      {
+        "item": {
+          "id": 1,
+          "type": "task",
+          "title": "Подготовить презентацию для инвесторов",
+          "notes": null,
+          "due_date": "2026-09-12",
+          "due_time": null,
+          "due_at": null,
+          "duration_min": null,
+          "participants": [],
+          "status": "open",
+          "created_at": "2026-10-21T14:30:00+03:00"
+        },
+        "score": 0.018,
+        "match": "fts"
+      }
+    ]
+  },
+  "reply_text": "Нашла: «Подготовить презентацию для инвесторов», срок был 12 сентября.",
+  "missing_slots": [],
+  "context": {
+    "session_id": "s_mock",
+    "last_items": [
+      1
+    ],
+    "pending": null
+  },
+  "meta": {
+    "transcript": null,
+    "nlu_provider": "rulebased",
+    "latency_ms": 2
+  }
+}

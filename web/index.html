@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Вега — голосовой ассистент</title>
+<meta name="description" content="Голосовой и текстовый ассистент для задач, напоминаний и встреч">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">
+{ "imports": {
+  "three": "/vendor/three/build/three.module.min.js",
+  "three/addons/": "/vendor/three/examples/jsm/"
+} }
+</script>
+<link rel="modulepreload" href="/vendor/three/build/three.module.min.js">
+</head>
+<body>
+<!-- Экран загрузки: логотип из элементов модели — орбита, крюк с капсулой, спутники (без шара) -->
+<div class="loader" id="loader" role="status" aria-label="Загрузка">
+  <img class="loader-logo" src="logo.svg" alt="">
+  <span class="loader-name">Вега</span>
+  <p class="loader-slow" id="loaderSlow" hidden>Сцена не загрузилась. <button type="button" onclick="location.reload()">Обновить</button></p>
+</div>
+<script>
+  // страховка вне модуля: если app.js так и не запустился (ошибка, обрыв сети) — не держим пользователя на логотипе
+  setTimeout(function () { if (!window.assistant && document.getElementById("loader")) document.getElementById("loaderSlow").hidden = false; }, 12000);
+</script>
+
+<!-- Сцена: экран 1 — только модель; при прокрутке модель уходит влево, справа выезжает чат -->
+<div class="scene" id="scene">
+  <div class="pin">
+    <div class="stage" id="stage">
+      <canvas id="orb" aria-label="Шар ассистента: показывает, что ассистент слушает, думает или говорит"></canvas>
+    </div>
+
+    <!-- Экран 1: шар — сам ассистент. Нажали — слушает, замолчали — отвечает голосом и субтитрами -->
+    <div class="hero" id="hero" data-active="true" data-cap="off">
+      <button class="hero-orb" id="heroOrb" type="button" aria-pressed="false" aria-label="Нажмите и скажите, что нужно сделать"></button>
+      <div class="hero-cap" aria-live="polite">
+        <div class="hero-bubble" id="heroBubble">
+          <p class="hero-line" id="heroLine"></p>
+          <div class="hero-card" id="heroCard" hidden></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Фаза 3: чаты-«спутники» на орбите вокруг шара -->
+    <div class="projects" id="projects" aria-label="Ваши чаты">
+      <p class="projects-title" id="projectsTitle">Ваши чаты</p>
+      <!-- кнопка поверх шара: после прилёта чатов шар «бьётся» и зовёт нажать — чаты раскладываются по темам -->
+      <button class="orb-hit" id="orbHit" type="button" aria-pressed="false" aria-label="Разложить чаты по темам"></button>
+      <p class="orb-hint" id="orbHint" aria-hidden="true"><span class="dot"></span><span id="orbHintText">Нажмите на шар — разложу чаты по темам</span></p>
+      <div class="projects-orbit" id="projectsOrbit"></div>
+    </div>
+
+    <section class="chat" id="chat" aria-label="Диалог с ассистентом">
+      <header class="chat-head">
+        <div class="brand"><img src="logo.svg" alt="" width="26" height="26">Вега</div>
+        <p class="state" id="status" aria-live="polite">Готова</p>
+        <div class="tools">
+          <span class="mode" id="mode" hidden>mock</span>
+          <button class="tool" id="mute" type="button" aria-pressed="false" title="Выключить озвучку">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="on" d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/><path class="off" d="M4 9v6h4l5 4V5L8 9H4zm12.6 0L15 10.6l1.4 1.4L15 13.4l1.6 1.6 1.4-1.4 1.4 1.4L21 13.4 19.6 12 21 10.6 19.4 9 18 10.4 16.6 9z"/></svg>
+            <span class="sr" id="muteLabel">Звук включён</span>
+          </button>
+          <button class="tool" id="chatsBtn" type="button" title="Чаты" aria-label="Чаты" aria-expanded="false" aria-controls="chatsMenu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z"/></svg>
+          </button>
+          <button class="tool" id="newSession" type="button" title="Новый чат" aria-label="Новый чат">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z"/></svg>
+          </button>
+        </div>
+      </header>
+      <nav class="chats-menu" id="chatsMenu" hidden aria-label="Список чатов">
+        <button class="chats-new" id="chatsNew" type="button">+ Новый чат</button>
+        <ul id="chatsList"></ul>
+      </nav>
+      <p class="live" id="live" aria-live="polite"></p>
+      <ol class="thread" id="thread"></ol>
+      <div class="chips" id="chips" aria-label="Быстрые ответы"></div>
+      <form class="composer" id="composer" autocomplete="off">
+        <button class="mic" id="mic" type="button" aria-pressed="false" aria-label="Записать голос (или удерживайте пробел)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2z"/></svg>
+          <span class="timer" id="timer"></span>
+        </button>
+        <label class="sr" for="input">Запрос ассистенту</label>
+        <input id="input" maxlength="500" placeholder="Напишите или нажмите микрофон" enterkeyhint="send">
+        <button class="send" id="send" type="submit" aria-label="Отправить">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l1.4 1.4L11 7.8V20h2V7.8l5.6 5.6L20 12l-8-8-8 8z"/></svg>
+        </button>
+      </form>
+    </section>
+  </div>
+</div>
+
+<!-- Дальше обычная прокрутка: всё остальное -->
+<main class="rest">
+  <section class="agenda-card" aria-labelledby="agendaTitle">
+    <div class="agenda-head">
+      <div>
+        <h2 id="agendaTitle">Ближайшие 7 дней</h2>
+        <p class="today" id="today"></p>
+      </div>
+      <button class="tool text" id="refresh" type="button">Обновить</button>
+    </div>
+    <div class="agenda" id="agenda"></div>
+  </section>
+</main>
+
+<!-- живые напоминания: всплывают, когда наступает срок -->
+<div class="toasts" id="toasts" aria-live="assertive"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

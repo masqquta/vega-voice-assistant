@@ -1,0 +1,66 @@
+id,phrase,context,expected_intent,expected_slots,category,needs_clarification
+T-1.1,Напомни мне завтра в 10 утра позвонить Ивану,,create_task,"{""type"":""reminder"",""title"":""Позвонить Ивану"",""due_date"":""2026-10-22"",""due_time"":""10:00""}",create_task,false
+T-1.2,В пятницу нужно отправить отчет,,create_task,"{""type"":""task"",""title"":""Отправить отчет"",""due_date"":""2026-10-23"",""due_time"":null}",create_task,false
+T-1.3,Поставь задачу купить билеты до конца недели,,create_task,"{""type"":""task"",""title"":""Купить билеты"",""due_date"":""2026-10-25""}",create_task,false
+T-1.4,Надо оплатить интернет,,create_task,"{""type"":""task"",""title"":""Оплатить интернет"",""due_date"":null}",create_task,false
+T-1.5,Не забудь через два часа выпить таблетку,,create_task,"{""type"":""reminder"",""title"":""Выпить таблетку"",""due_date"":""2026-10-21"",""due_time"":""16:30""}",create_task,false
+T-1.6,Запиши задачу подготовить презентацию на следующей неделе,,create_task,"{""title"":""Подготовить презентацию"",""due_date"":""2026-11-01""}",create_task,false
+T-1.7,"Слушай, ну напомни мне, пожалуйста, завтра забрать посылку",,create_task,"{""missing"":[""time""]}",noise,true
+C-1,Купить молоко завтра,,create_task,"{""type"":""task"",""title"":""Купить молоко"",""due_date"":""2026-10-22""}",create_task,false
+C-2,Напомни через 30 минут проверить почту,,create_task,"{""type"":""reminder"",""due_date"":""2026-10-21"",""due_time"":""15:00""}",create_task,false
+C-3,Нужно сдать отчёт 25 октября,,create_task,"{""type"":""task"",""title"":""Сдать отчёт"",""due_date"":""2026-10-25""}",create_task,false
+C-4,Напомни в четверг вечером забрать костюм из химчистки,,create_task,"{""type"":""reminder"",""title"":""Забрать костюм из химчистки"",""due_date"":""2026-10-22"",""due_time"":""19:00""}",create_task,false
+C-5,Добавь задачу записаться к стоматологу,,create_task,"{""type"":""task"",""title"":""Записаться к стоматологу"",""due_date"":null}",create_task,false
+C-6,Через 3 дня надо продлить страховку,,create_task,"{""type"":""task"",""title"":""Продлить страховку"",""due_date"":""2026-10-24""}",relative_dates,false
+C-7,Напомни послезавтра в девять утра оплатить аренду,,create_task,"{""type"":""reminder"",""due_date"":""2026-10-23"",""due_time"":""09:00""}",relative_dates,false
+C-8,Через неделю нужно подать документы,,create_task,"{""due_date"":""2026-10-28""}",relative_dates,false
+T-2.1,Добавь встречу с командой завтра в 15:00,,create_meeting,"{""type"":""meeting"",""title"":""Встреча с командой"",""due_date"":""2026-10-22"",""due_time"":""15:00"",""duration_min"":60}",create_meeting,false
+T-2.2,В четверг в 11 у меня встреча с дизайнером,,create_meeting,"{""title"":""Встреча с дизайнером"",""due_date"":""2026-10-22"",""due_time"":""11:00""}",create_meeting,false
+T-2.3,Созвон с Ольгой в пятницу в 12,,create_meeting,"{""title"":""Созвон с Ольгой"",""due_date"":""2026-10-23"",""due_time"":""12:00""}",create_meeting,false
+T-2.4,Поставь встречу с Иваном завтра,,create_meeting,"{""missing"":[""time""]}",clarification,true
+T-2.5,Встреча с инвесторами послезавтра в 10 утра на 2 часа,,create_meeting,"{""due_date"":""2026-10-23"",""due_time"":""10:00"",""duration_min"":120}",create_meeting,false
+M-1,Совещание по бюджету в понедельник в 14:30,,create_meeting,"{""type"":""meeting"",""title"":""Совещание по бюджету"",""due_date"":""2026-10-26"",""due_time"":""14:30""}",create_meeting,false
+M-2,Напомни про встречу с командой в 15:00,,create_meeting,"{""type"":""meeting"",""title"":""Встреча с командой"",""due_date"":""2026-10-21"",""due_time"":""15:00""}",create_meeting,false
+M-3,Собеседование с кандидатом 28 октября в 16:00,,create_meeting,"{""type"":""meeting"",""due_date"":""2026-10-28"",""due_time"":""16:00""}",create_meeting,false
+M-4,Планёрка завтра в 9:30 на полчаса,,create_meeting,"{""type"":""meeting"",""title"":""Планёрка"",""due_date"":""2026-10-22"",""due_time"":""09:30"",""duration_min"":30}",create_meeting,false
+M-5,Созвон с клиентом через 2 часа,,create_meeting,"{""type"":""meeting"",""due_date"":""2026-10-21"",""due_time"":""16:30""}",create_meeting,false
+T-3.1,Что у меня сегодня?,,list_events,"{""period_from"":""2026-10-21"",""period_to"":""2026-10-21""}",list_events,false
+T-3.2,Какие планы на сегодня?,,list_events,"{""period_from"":""2026-10-21"",""period_to"":""2026-10-21""}",list_events,false
+T-3.3,Покажи мои встречи на сегодня,,list_events,"{""period_from"":""2026-10-21""}",list_events,false
+T-3.4,Есть ли у меня встречи сегодня?,,list_events,"{""period_from"":""2026-10-21""}",list_events,false
+T-3.5,Какие задачи на завтра?,,list_events,"{""period_from"":""2026-10-22"",""period_to"":""2026-10-22""}",list_events,false
+T-3.6,Что запланировано на эту неделю?,,list_events,"{""period_from"":""2026-10-19"",""period_to"":""2026-10-25""}",list_events,false
+T-3.7,Что у меня в понедельник?,,list_events,"{""period_from"":""2026-10-26"",""period_to"":""2026-10-26""}",list_events,false
+T-3.8,Что у меня 5 ноября?,,list_events,"{""period_from"":""2026-11-05"",""period_to"":""2026-11-05""}",list_events,false
+L-1,Что у меня на следующей неделе?,,list_events,"{""period_from"":""2026-10-26"",""period_to"":""2026-11-01""}",list_events,false
+L-2,Покажи расписание на послезавтра,,list_events,"{""period_from"":""2026-10-23""}",list_events,false
+L-3,Что запланировано на 30 октября,,list_events,"{""period_from"":""2026-10-30"",""first_title"":""Оплатить аренду офиса""}",list_events,false
+S-1,Найди задачу про презентацию,,search,"{""first_title"":""Подготовить презентацию для инвесторов""}",search,false
+S-2,Когда у меня была встреча с Иваном?,,search,"{""first_title"":""Встреча с Иваном Петровым по бюджету""}",search,false
+S-3,"Я когда-то ставил задачу по договору, найди её",,search,"{""first_title"":""Согласовать договор с поставщиком""}",search,false
+S-4,"Найди, что там было про слайды для инвесторов",,search,"{""first_title"":""Подготовить презентацию для инвесторов""}",search,false
+S-5,Найди документ с поставщиком,,search,"{""first_title"":""Согласовать договор с поставщиком""}",search,false
+S-6,"Найди, что я собирался отправить в бухгалтерию",,search,"{""first_title"":""Отправить счёт в бухгалтерию""}",search,false
+S-9,Найди что-то про отпуск,,search,"{""first_title"":""Оформить заявление на отпуск""}",search,false
+S-11,Найди тот созвон про бюджет,,search,"{""first_title"":""Встреча с Иваном Петровым по бюджету""}",search,false
+S-12,Когда была планёрка?,,search,"{""first_title"":""Планёрка команды""}",search,false
+S-13,Найди задачу про космос,,search,{},search,false
+U-1b,в три,after:Поставь встречу с Иваном завтра,create_meeting,"{""due_date"":""2026-10-22"",""due_time"":""15:00""}",clarification,false
+U-2,Напомни позвонить маме,,create_task,"{""missing"":[""date"",""time""]}",clarification,true
+U-3,Поставь встречу,,create_meeting,"{""missing"":[""title"",""date"",""time""]}",clarification,true
+U-5,В 7 встреча с дизайнером,,create_meeting,"{""missing"":[""ampm""]}",clarification,true
+U-5b,вечера,after:В 7 встреча с дизайнером,create_meeting,"{""due_time"":""19:00""}",clarification,false
+U-6,Встреча с командой на следующей неделе,,create_meeting,"{""missing"":[""date""]}",clarification,true
+U-7,Перенеси встречу,,update,"{""missing"":[""target""]}",clarification,true
+U-8,Поставь встречу с Иваном сегодня в 14:00,,create_meeting,"{""missing"":[""confirm""]}",clarification,true
+U-10,Созвон с Петром на выходных,,create_meeting,"{""missing"":[""date""]}",clarification,true
+U-11,Ночью напомни про лекарство,,create_task,"{""missing"":[""time""]}",clarification,true
+B-1,Перенеси её на завтра,after:В пятницу нужно отправить отчет,update,"{""due_date"":""2026-10-22""}",context,false
+B-2,"Отметь, что отчёт отправлен",after:В пятницу нужно отправить отчет,complete,"{""title"":""Отправить отчет""}",context,false
+B-4,Перенеси встречу с дизайнером на пятницу в 14,after:В четверг в 11 у меня встреча с дизайнером,update,"{""due_date"":""2026-10-23"",""due_time"":""14:00""}",context,false
+N-1,"Короче, э-э, завтра в пятнадцать ноль ноль созвон с Петром",,create_meeting,"{""title"":""Созвон с Петром"",""due_date"":""2026-10-22"",""due_time"":""15:00""}",noise,false
+N-2,ну надо бы купить подарок маме к субботе,,create_task,"{""due_date"":""2026-10-24""}",noise,false
+N-3,Напомни мне в десять тридцать утра завтра выпить витамины,,create_task,"{""due_date"":""2026-10-22"",""due_time"":""10:30""}",noise,false
+E-13,Какая погода?,,unknown,{},off_topic,false
+O-1,Расскажи анекдот,,unknown,{},off_topic,false
+O-2,Сколько будет два плюс два,,unknown,{},off_topic,false

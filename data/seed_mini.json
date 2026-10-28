@@ -1,0 +1,12 @@
+[
+  { "ref": 201, "type": "task", "title": "Подготовить презентацию для инвесторов", "due_date": "2026-09-12", "due_time": null },
+  { "ref": 202, "type": "task", "title": "Согласовать договор с поставщиком", "due_date": "2026-09-18", "due_time": null },
+  { "ref": 203, "type": "meeting", "title": "Встреча с Иваном Петровым по бюджету", "due_date": "2026-09-15", "due_time": "11:00" },
+  { "ref": 204, "type": "task", "title": "Позвонить Ивану", "due_date": "2026-10-05", "due_time": null },
+  { "ref": 205, "type": "task", "title": "Оформить заявление на отпуск", "due_date": "2026-10-01", "due_time": null },
+  { "ref": 206, "type": "task", "title": "Отправить счёт в бухгалтерию", "due_date": "2026-10-09", "due_time": null },
+  { "ref": 207, "type": "meeting", "title": "Созвон с дизайнером по макетам", "due_date": "2026-10-14", "due_time": "15:00" },
+  { "ref": 208, "type": "task", "title": "Позвонить Марией", "due_date": "2026-10-02", "due_time": null },
+  { "ref": 209, "type": "task", "title": "Оплатить аренду офиса", "due_date": "2026-10-30", "due_time": null },
+  { "ref": 210, "type": "meeting", "title": "Планёрка команды", "due_date": "2026-10-19", "due_time": "10:00" }
+]

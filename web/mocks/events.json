@@ -1,0 +1,57 @@
+{
+  "items": [
+    {
+      "id": 12,
+      "type": "meeting",
+      "title": "Планёрка",
+      "notes": null,
+      "due_date": "2026-10-21",
+      "due_time": "16:00",
+      "due_at": "2026-10-21T16:00:00+03:00",
+      "duration_min": 60,
+      "participants": [],
+      "status": "open",
+      "created_at": "2026-10-21T14:30:00+03:00"
+    },
+    {
+      "id": 13,
+      "type": "task",
+      "title": "Отправить отчёт",
+      "notes": null,
+      "due_date": "2026-10-21",
+      "due_time": null,
+      "due_at": null,
+      "duration_min": null,
+      "participants": [],
+      "status": "open",
+      "created_at": "2026-10-21T14:30:00+03:00"
+    },
+    {
+      "id": 11,
+      "type": "reminder",
+      "title": "Позвонить Ивану",
+      "notes": null,
+      "due_date": "2026-10-22",
+      "due_time": "10:00",
+      "due_at": "2026-10-22T10:00:00+03:00",
+      "duration_min": null,
+      "participants": [],
+      "status": "open",
+      "created_at": "2026-10-21T14:30:00+03:00"
+    },
+    {
+      "id": 14,
+      "type": "meeting",
+      "title": "Встреча с дизайнером",
+      "notes": null,
+      "due_date": "2026-10-22",
+      "due_time": "11:00",
+      "due_at": "2026-10-22T11:00:00+03:00",
+      "duration_min": 60,
+      "participants": [],
+      "status": "open",
+      "created_at": "2026-10-21T14:30:00+03:00"
+    }
+  ],
+  "total": 4
+}

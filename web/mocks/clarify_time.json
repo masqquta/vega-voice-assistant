@@ -1,0 +1,42 @@
+{
+  "request_id": "r_mock5",
+  "action": "create_meeting",
+  "status": "need_clarification",
+  "data": {},
+  "reply_text": "На какое время поставить встречу?",
+  "missing_slots": [
+    "time"
+  ],
+  "context": {
+    "session_id": "s_c",
+    "last_items": [],
+    "pending": {
+      "kind": "slot_filling",
+      "intent": "create_meeting",
+      "filled": {
+        "type": "meeting",
+        "title": "Встреча с Иваном",
+        "title_raw": "Поставь встречу с Иваном завтра",
+        "date": {
+          "kind": "tomorrow"
+        },
+        "time": null,
+        "duration_min": null,
+        "participants": [
+          "Иваном"
+        ],
+        "weekend": false
+      },
+      "missing": [
+        "time"
+      ],
+      "attempts": 0,
+      "question": "На какое время поставить встречу?"
+    }
+  },
+  "meta": {
+    "transcript": null,
+    "nlu_provider": "rulebased",
+    "latency_ms": 0
+  }
+}

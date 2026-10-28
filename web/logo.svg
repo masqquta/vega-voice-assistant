@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-100 -100 200 200" width="200" height="200">
+  <!-- Логотип «Вега»: элементы 3D-модели без шара — орбита, хромированный крюк с капсулой, спутники.
+       Геометрия как в blender/refine_b.py: шар r=40 (не рисуется), дуга крюка r=48 от 250° до 70°,
+       стебель-клотоида, капсула 14×8. -->
+  <defs>
+    <linearGradient id="chrome" x1="-60" y1="-60" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e9ebef"/>
+      <stop offset=".35" stop-color="#8f9399"/>
+      <stop offset=".55" stop-color="#f4f5f7"/>
+      <stop offset=".8" stop-color="#5f636a"/>
+      <stop offset="1" stop-color="#c9ccd1"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="-90" y1="0" x2="90" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b9bcc1"/>
+      <stop offset=".5" stop-color="#e6e7ea"/>
+      <stop offset="1" stop-color="#9da1a7"/>
+    </linearGradient>
+    <radialGradient id="sat" cx=".35" cy=".3" r=".75">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".45" stop-color="#b8bcc2"/>
+      <stop offset="1" stop-color="#5d6168"/>
+    </radialGradient>
+  </defs>
+  <!-- орбита -->
+  <ellipse cx="0" cy="0" rx="88" ry="33" transform="rotate(-18)" fill="none" stroke="url(#ring)" stroke-width="1.6"/>
+  <!-- крюк: дуга + стебель -->
+  <path d="M -16.4 45.1 A 48 48 0 0 0 16.4 -45.1 Q 6.4 -48.7 -2.6 -55.5" fill="none" stroke="url(#chrome)" stroke-width="3.4" stroke-linecap="round"/>
+  <!-- капсула на конце стебля -->
+  <rect x="-1" y="-4.4" width="15" height="8.8" rx="4.4" transform="translate(-2.6 -55.5) rotate(193)" fill="url(#chrome)" stroke="#7c8087" stroke-width=".6"/>
+  <!-- спутники -->
+  <circle cx="-71" cy="31" r="5.2" fill="url(#sat)"/>
+  <circle cx="80" cy="-38" r="3.6" fill="url(#sat)"/>
+  <circle cx="44" cy="40" r="4.3" fill="url(#sat)"/>
+</svg>

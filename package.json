@@ -1,0 +1,28 @@
+{
+  "name": "voice-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Голосовой и текстовый ассистент для задач, напоминаний и встреч",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node --watch server/index.js",
+    "start": "node server/index.js",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/import_dataset.js",
+    "embeddings": "node scripts/build_embeddings.js",
+    "test": "node --test \"test/*.test.js\"",
+    "eval:nlu": "node scripts/eval_nlu.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "express": "4.21.2",
+    "luxon": "3.5.0",
+    "multer": "2.0.2",
+    "snowball-stemmers": "0.6.0",
+    "three": "0.169.0",
+    "zod": "3.24.1"
+  }
+}

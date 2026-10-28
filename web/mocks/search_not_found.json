@@ -1,0 +1,23 @@
+{
+  "request_id": "r_mock8",
+  "action": "search",
+  "status": "not_found",
+  "data": {
+    "query": "космос",
+    "results": []
+  },
+  "reply_text": "Ничего похожего не нашла. Попробуйте описать иначе.",
+  "missing_slots": [],
+  "context": {
+    "session_id": "s_mock",
+    "last_items": [
+      1
+    ],
+    "pending": null
+  },
+  "meta": {
+    "transcript": null,
+    "nlu_provider": "rulebased",
+    "latency_ms": 0
+  }
+}
