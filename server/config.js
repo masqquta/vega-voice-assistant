@@ -20,6 +20,11 @@ export const config = {
     folderId: env.YANDEX_FOLDER_ID || "",
     llmModel: env.YANDEX_LLM_MODEL || "yandexgpt/latest",
   },
+  groq: {
+    apiKey: env.GROQ_API_KEY || "",
+    models: (env.GROQ_MODELS || "openai/gpt-oss-120b,qwen/qwen3.8-27b,openai/gpt-oss-20b")
+      .split(",").map((s) => s.trim()).filter(Boolean),
+  },
   openrouter: {
     apiKey: env.OPENROUTER_API_KEY || "",
     models: (env.OPENROUTER_MODELS || "nvidia/nemotron-3.5-super-vl:free,nvidia/nemotron-3.5-lightning:free,nvidia/nemotron-3-ultra-550b-a55b:free")
@@ -30,8 +35,12 @@ export const config = {
     scope: env.GIGACHAT_SCOPE || "GIGACHAT_API_PERS",
     model: env.GIGACHAT_MODEL || "GigaChat",
   },
-  sttProvider: env.STT_PROVIDER || "yandex",
-  whisperApiKey: env.WHISPER_API_KEY || "",
+  // Есть ключ Groq — распознавание через бесплатный Whisper на Groq; иначе SpeechKit или браузер
+  sttProvider: env.STT_PROVIDER || (env.GROQ_API_KEY ? "whisper" : "yandex"),
+  whisperApiKey: env.WHISPER_API_KEY || env.GROQ_API_KEY || "",
+  whisperUrl: env.WHISPER_URL || (!env.WHISPER_API_KEY && env.GROQ_API_KEY
+    ? "https://api.groq.com/openai/v1/audio/transcriptions" : "https://api.openai.com/v1/audio/transcriptions"),
+  whisperModel: env.WHISPER_MODEL || (!env.WHISPER_API_KEY && env.GROQ_API_KEY ? "whisper-large-v3-turbo" : "whisper-1"),
   llmTimeoutMs: Number(env.LLM_TIMEOUT_MS || 4000),
   embeddings: env.EMBEDDINGS || "local",        // local | yandex | off
   semThreshold: env.SEM_THRESHOLD ? Number(env.SEM_THRESHOLD) : null,

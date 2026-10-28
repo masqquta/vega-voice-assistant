@@ -1,0 +1,14 @@
+# Бесплатный «будильник»: free-сервис Render засыпает после 15 минут без запросов, а после пробуждения
+# ~1 минуту стартует и ещё пару минут грузит модель поиска. GitHub каждые 10 минут дёргает /health —
+# сервис не засыпает, жюри не ждёт. (Render free даёт 750 часов в месяц — на один сервис 24/7 хватает.)
+name: keep-alive
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ping /health
+        run: curl -fsS --retry 3 --retry-delay 20 --max-time 90 https://vega-assistant.onrender.com/api/v1/health

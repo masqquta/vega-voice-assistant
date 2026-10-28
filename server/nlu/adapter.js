@@ -6,6 +6,7 @@ import { buildMessages } from "./prompt.js";
 import { extractJson, validateNlu } from "./schema.js";
 import { parseRuleBased } from "./rulebased.js";
 import { word } from "./normalize.js";
+import * as groq from "./groq.js";
 import * as openrouter from "./openrouter.js";
 import * as yandex from "./yandex.js";
 import * as gigachat from "./gigachat.js";
@@ -41,8 +42,10 @@ function withTimeout(fn, ms) {
  * @param {{providers?: {name: string, available: () => boolean, complete: Function}[], timeoutMs?: number,
  *          log?: (event: object) => void}} opts
  */
-export function createNlu({ providers = [openrouter, yandex, gigachat], timeoutMs = config.llmTimeoutMs, log = () => {}, cascade = false } = {}) {
+export function createNlu({ providers = [groq, openrouter, yandex, gigachat], timeoutMs = config.llmTimeoutMs, log = () => {}, cascade = false } = {}) {
   const status = Object.fromEntries(providers.map((p) => [p.name, p.available() ? "configured" : "unknown"]));
+  const pausedUntil = {};                                 // 429 «лимит исчерпан» — не дёргаем провайдера 10 минут
+  const QUOTA_PAUSE_MS = 10 * 60_000;
 
   async function viaLlm(p, norm, ctx) {
     let hint = null;
@@ -52,7 +55,8 @@ export function createNlu({ providers = [openrouter, yandex, gigachat], timeoutM
         text = await withTimeout((signal) => p.complete(buildMessages(norm.clean, ctx, hint), { signal }), timeoutMs);
         status[p.name] = "up";
       } catch (e) {
-        status[p.name] = "down";
+        status[p.name] = e.status === 429 ? "quota" : "down";
+        if (e.status === 429) pausedUntil[p.name] = Date.now() + (p.retryAfterMs?.() ?? QUOTA_PAUSE_MS);
         log({ event: "nlu_provider_error", provider: p.name, error: e.name === "AbortError" ? "timeout" : e.message });
         return null;                                      // таймаут / 5xx — без ретрая, к следующему провайдеру
       }
@@ -77,7 +81,7 @@ export function createNlu({ providers = [openrouter, yandex, gigachat], timeoutM
         if (rulesConfident(norm, rb)) return { ...rb, provider: "rulebased" };
       }
       for (const p of providers) {
-        if (!p.available()) continue;
+        if (!p.available() || pausedUntil[p.name] > Date.now()) continue;
         const res = await viaLlm(p, norm, ctx);
         if (!res) continue;
         // LLM не поняла, а правила уверенно понимают — берём правила (страховка базовых фраз)

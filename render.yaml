@@ -16,6 +16,10 @@ services:
         value: Europe/Moscow
       - key: LLM_TIMEOUT_MS
         value: "8000"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODELS
+        value: openai/gpt-oss-120b,qwen/qwen3.8-27b,openai/gpt-oss-20b
       - key: OPENROUTER_API_KEY
         sync: false
       - key: OPENROUTER_MODELS

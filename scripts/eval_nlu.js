@@ -47,6 +47,8 @@ for (const r of rows) {
   const expNeeds = r.needs_clarification === "true";
   // clarify_answer — это ответ на уточнение; итоговое действие сверяем по action
   const intentOk = intent === r.expected_intent || (intent === "clarify_answer" && out.action === r.expected_intent);
+  // EVAL_DELAY_MS — пауза после фразы, ушедшей в LLM: бесплатные лимиты считают токены в минуту
+  if (out.meta.nlu_provider !== "rulebased" && process.env.EVAL_DELAY_MS) await new Promise((res) => setTimeout(res, Number(process.env.EVAL_DELAY_MS)));
   results.push({ ...r, intent, intentOk, slotErrors, needs, expNeeds, pass: intentOk && !slotErrors.length && needs === expNeeds, latency, provider: out.meta.nlu_provider });
 }
 
