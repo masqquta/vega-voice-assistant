@@ -2,7 +2,7 @@
 
 > Из реплики в свободной форме создаёт, находит и показывает задачи, напоминания и встречи и подтверждает действие голосом или текстом.
 
-**Демо:** ещё не задеплоено (см. «Деплой») · **Репозиторий:** https://github.com/masqquta/vega-voice-assistant · **ТЗ:** [docs/requirements.pdf](docs/requirements.pdf)
+**Демо:** https://vega-assistant.onrender.com (free-тариф: после простоя первый запрос ~1 мин) · **Репозиторий:** https://github.com/masqquta/vega-voice-assistant · **ТЗ:** [docs/requirements.pdf](docs/requirements.pdf)
 
 ## Что умеет
 
