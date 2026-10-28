@@ -1,5 +1,5 @@
 # Один сервис: API (/api/v1) + статика фронта. SQLite живёт на volume /data (DB_PATH=/data/app.db).
-FROM node:20-bookworm-slim
+FROM node:24-bookworm-slim
 
 # ffmpeg — перекодирование webm/mp4 → ogg/opus для SpeechKit; ca-certificates + сертификат НУЦ Минцифры для GigaChat
 RUN apt-get update \

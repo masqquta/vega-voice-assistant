@@ -5,7 +5,7 @@
   "description": "Голосовой и текстовый ассистент для задач, напоминаний и встреч",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "node --watch server/index.js",

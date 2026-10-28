@@ -20,7 +20,7 @@
 
 | Слой | Технология | Почему |
 |---|---|---|
-| Язык / рантайм | Node.js 20 (ESM) | один язык для фронта и бэка |
+| Язык / рантайм | Node.js 24 (ESM) | один язык для фронта и бэка |
 | Фронт | ванильный JS, three.js 0.169 (шар) | без сборки, отдаётся тем же сервисом |
 | БД | SQLite (better-sqlite3), WAL, FTS5 | файл на volume, полнотекст из коробки |
 | LLM | OpenRouter (бесплатные NVIDIA Nemotron 3.5 Super → Lightning → 3 Ultra), YandexGPT, GigaChat, последний слой RuleBased | бесплатный ключ без карты; демо работает и без LLM |
@@ -86,7 +86,7 @@ test/         dates.test.js, assistant.test.js, api.test.js
 
 ## Запуск локально
 
-Требования: Node.js ≥ 20; ffmpeg — только для SpeechKit.
+Требования: Node.js ≥ 22; ffmpeg — только для SpeechKit.
 
 ```bash
 npm install
