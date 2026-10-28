@@ -11,6 +11,7 @@
     "dev": "node --watch server/index.js",
     "start": "node server/index.js",
     "migrate": "node scripts/migrate.js",
+    "clean": "node scripts/clean_dataset.js",
     "seed": "node scripts/import_dataset.js",
     "embeddings": "node scripts/build_embeddings.js",
     "test": "node --test \"test/*.test.js\"",

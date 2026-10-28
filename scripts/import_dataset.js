@@ -7,7 +7,7 @@ import fs from "node:fs";
 import { parseCsv } from "./csv.js";
 import { config } from "../server/config.js";
 import { openDb } from "../server/db/index.js";
-import { seedMini } from "../server/db/seed.js";
+import { seedMini, seedIfEmpty } from "../server/db/seed.js";
 import { ensureUser, insertItem } from "../server/services/items.js";
 
 const args = process.argv.slice(2);
@@ -25,6 +25,7 @@ if (!fs.existsSync(file)) {
   process.exit(0);
 }
 
+if (userId === "demo" && config.seedDemo) seedIfEmpty(db, userId, { tz: config.tzDefault, nowSec });   // демо-сценарии + датасет
 ensureUser(db, userId, config.tzDefault, nowSec);
 const rows = parseCsv(fs.readFileSync(file, "utf8"));
 const exists = db.prepare("SELECT 1 FROM items WHERE user_id = ? AND title_raw IS ? AND due_date IS ? AND deleted_at IS NULL");

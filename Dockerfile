@@ -15,9 +15,10 @@ RUN npm ci --omit=dev
 COPY server ./server
 COPY web ./web
 COPY scripts ./scripts
-COPY data/seed_mini.json ./data/seed_mini.json
+COPY data/seed_mini.json data/dataset.clean.csv ./data/
 
 ENV NODE_ENV=production PORT=3000 DB_PATH=/data/app.db TZ_DEFAULT=Europe/Moscow
 EXPOSE 3000
 # при старте: миграции и автосид пустой БД выполняет сам сервер
-CMD ["node", "server/index.js"]
+# импорт датасета идемпотентен: на временном диске (Render free) база собирается заново при каждом старте
+CMD ["sh", "-c", "node scripts/import_dataset.js && node server/index.js"]
