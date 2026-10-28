@@ -3,8 +3,10 @@
 // Голос и текст идут через один и тот же handle() (FR-5.2).
 import { normalize } from "../nlu/normalize.js";
 import { CONFIDENCE_MIN } from "../nlu/schema.js";
-import { resolve, resolveDate, resolveTime } from "../dates/resolver.js";
+import { resolve, resolveDate, resolveTime, startUtc } from "../dates/resolver.js";
 import { typeFor } from "../domain/type.js";
+import { parseRepeat, toRule, firstOnOrAfter, nextAfter } from "../domain/repeat.js";
+import { DateTime } from "luxon";
 import * as items from "./items.js";
 import { search, ambiguous } from "./search.js";
 import { queryStems } from "./stem.js";
@@ -29,7 +31,8 @@ export function createAssistant({ db, nlu, embedder = null, log = () => {} }) {
 
   // ---------------------------------------------------------------- создание
 
-  async function createFlow(f, env, attempts = 0) {
+  async function createFlow(f0, env, attempts = 0) {
+    let f = f0;
     const { ctx, now } = env;
     const type = f.type;
     const action = type === "meeting" ? "create_meeting" : "create_task";
@@ -38,6 +41,18 @@ export function createAssistant({ db, nlu, embedder = null, log = () => {} }) {
       return clarify(action, missing, question);
     };
 
+    // повтор без даты («каждый понедельник в 9») — первый раз считаем по правилу: сегодня, если время ещё впереди
+    if (f.repeat && (f.date?.kind || "none") === "none") {
+      const today = now.toISODate();
+      const rule = toRule(f.repeat, today);
+      if (rule) {
+        let first = firstOnOrAfter(rule, today);
+        const t = f.time && !f.time.relative ? resolveTime(f.time) : null;
+        if (first === today && t && !t.need && now.set({ hour: t.hour, minute: t.minute }) <= now) first = nextAfter(rule, today);
+        const d = DateTime.fromISO(first);
+        f = { ...f, date: { kind: "absolute", day: d.day, month: d.month, year: d.year } };
+      }
+    }
     const r = resolve({ date: f.date, time: f.time }, now, { type, mode: "create" });
     const missing = [];
     if (!f.title) missing.push("title");
@@ -65,7 +80,21 @@ export function createAssistant({ db, nlu, embedder = null, log = () => {} }) {
       ctx.pending = { kind: "confirm", intent: action, filled: f, suggestion: r.suggestion, missing: ["confirm"], attempts, question: R.askPast(r.suggestion.due_time) };
       return clarify(action, ["confirm"], ctx.pending.question);
     }
-    return createItem(f, { due_date: r.due_date, due_time: r.due_time }, env);
+    return finalize(f, { due_date: r.due_date, due_time: r.due_time }, env, attempts);
+  }
+
+  /** Встреча пересекается с другой — сначала спрашиваем «Всё равно поставить?» (FR-2.5), иначе создаём. */
+  function finalize(f, due, env, attempts = 0) {
+    if (f.type === "meeting") {
+      const start = startUtc(due.due_date, due.due_time, env.tz);
+      const conflicts = items.findConflicts(db, env.userId, { start, durationMin: f.duration_min || 60 }).map((c) => items.serialize(c, env.tz));
+      if (conflicts.length) {
+        const question = R.askConflict(conflicts);
+        env.ctx.pending = { kind: "confirm", conflict: true, intent: "create_meeting", filled: f, suggestion: due, missing: ["confirm"], attempts, question };
+        return clarify("create_meeting", ["confirm"], question, { conflicts });
+      }
+    }
+    return createItem(f, due, env);
   }
 
   function createItem(f, due, env) {
@@ -74,7 +103,7 @@ export function createAssistant({ db, nlu, embedder = null, log = () => {} }) {
     const row = items.insertItem(db, userId, {
       type, title: f.title, title_raw: f.title_raw, due_date: due.due_date, due_time: due.due_time,
       duration_min: type === "meeting" ? f.duration_min || 60 : null, participants: type === "meeting" ? f.participants : null,
-      source: "assistant",
+      source: "assistant", repeat: f.repeat ? toRule(f.repeat, due.due_date) : null,
     }, { tz, nowSec });
     const conflicts = type === "meeting"
       ? items.findConflicts(db, userId, { start: row.start_utc, durationMin: row.duration_min, excludeId: row.id }).map((c) => items.serialize(c, tz))
@@ -169,8 +198,8 @@ export function createAssistant({ db, nlu, embedder = null, log = () => {} }) {
     ctx.pending = null;
     ctx.last_items = [id];
     if (action === "complete") {
-      const done = items.setDone(db, userId, id, true, nowSec);
-      return { action, status: "ok", data: { item: items.serialize(done, tz) }, reply: R.completed(done) };
+      const done = items.setDone(db, userId, id, true, nowSec, { tz });
+      return { action, status: "ok", data: { item: items.serialize(done, tz) }, reply: R.completed(done, now) };
     }
     if (action === "delete") {
       items.softDelete(db, userId, id, nowSec);
@@ -227,7 +256,8 @@ export function createAssistant({ db, nlu, embedder = null, log = () => {} }) {
   async function continuePending(p, slots, env) {
     const { ctx } = env;
     if (p.kind === "confirm") {
-      if (slots.confirm === "yes") return createItem(p.filled, p.suggestion, env);
+      // «да» на конфликт — ставим как есть; «да» на «время прошло, на завтра?» — ещё проверяем пересечения
+      if (slots.confirm === "yes") return p.conflict ? createItem(p.filled, p.suggestion, env) : finalize(p.filled, p.suggestion, env);
       if (slots.confirm === "no") {
         ctx.pending = { kind: "slot_filling", intent: p.intent, filled: { ...p.filled, date: { kind: "none" }, time: null }, missing: ["time"], attempts: 0, question: R.DECLINED };
         return clarify(p.intent, ["time"], R.DECLINED);
@@ -291,6 +321,8 @@ export function createAssistant({ db, nlu, embedder = null, log = () => {} }) {
           type: typeFor(env.norm.match), title: slots.title, title_raw: env.norm.original,
           date: slots.date, time: slots.time, duration_min: slots.duration_min,
           participants: slots.participants || [], weekend: Boolean(slots.weekend),
+          // повтор: от NLU, а если LLM его не заметила — правилом по тексту
+          repeat: slots.repeat || parseRepeat(env.norm.clean).repeat,
         }, env);
       case "list_events": return listFlow(slots, env);
       case "search": return searchFlow(slots, env);

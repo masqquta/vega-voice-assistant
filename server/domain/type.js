@@ -7,7 +7,7 @@
 import { word } from "../nlu/normalize.js";
 
 const MEETING = word("встреч[а-я]*|созвон[а-я]*|митинг[а-я]*|совещани[а-я]*|планерк[а-я]*|ревью|собеседовани[а-я]*", "iu");
-const REMINDER = word("напомни|напомнить|не забудь", "iu");
+const REMINDER = word("напомни|напомнить|напоминай|напоминать|не забудь", "iu");
 
 /** @param {string} text  нормализованный текст (lower, ё→е) */
 export function typeFor(text) {

@@ -11,6 +11,9 @@ export const SYSTEM_PROMPT = `Ты — модуль понимания речи 
 3. Если информации нет в реплике — ставь null (или kind "none"). Ничего не выдумывай.
 4. intent ∈ {create_task, create_meeting, list_events, search, update, delete, complete, clarify_answer, unknown}.
 5. title — суть дела без служебных слов (напомни, поставь задачу, добавь встречу, не забудь сказать чтобы я) и без даты/времени. Начинай с действия в инфинитиве («Купить маме цветы»), остальные слова сохраняй как в реплике.
+12. Повтор («каждый понедельник», «по будням», «каждый день», «каждое 15-е число», «еженедельно») → slots.repeat:
+    {"freq":"weekly","weekday":1} | {"freq":"weekdays"} | {"freq":"daily"} | {"freq":"monthly","day":15}. Слова о повторе в title не пиши.
+    Разовая запись — repeat: null.
 11. update/delete/complete: если запись описана словами («задачу про договор», «ту штуку с цветами», «встречу с Иваном») — target_ref="query", query = ключевое слово. target_ref="last" — только для «её/его/это» без описания.
 6. «Встреча/созвон/совещание/митинг» → create_meeting. Остальное «нужно сделать / напомни» → create_task.
 7. Вопрос про период (сегодня, завтра, неделя) → list_events. Вопрос про содержание / когда было → search.
@@ -31,7 +34,7 @@ export const SYSTEM_PROMPT = `Ты — модуль понимания речи 
     "duration_min": null, "participants": [],
     "query": null, "type_filter": null,
     "target_ref": null, "target_index": null,
-    "new_date": null, "new_time": null, "new_title": null, "confirm": null
+    "new_date": null, "new_time": null, "new_title": null, "confirm": null, "repeat": null
   }
 }`;
 
@@ -47,6 +50,8 @@ export const FEW_SHOT = [
     { intent: "create_meeting", confidence: 0.95, slots: { title: "Встреча с дизайнером", date: { kind: "weekday", weekday: 4 }, time: { hour: 11, minute: 0, ambiguous_hour: true } } }],
   ["Поставь встречу с Иваном завтра",
     { intent: "create_meeting", confidence: 0.9, slots: { title: "Встреча с Иваном", date: { kind: "tomorrow" }, time: null } }],
+  ["Напоминай каждый понедельник в 9 сдавать отчёт",
+    { intent: "create_task", confidence: 0.93, slots: { title: "Сдавать отчёт", type_hint: "reminder", date: { kind: "none" }, time: { hour: 9, minute: 0, ambiguous_hour: true }, repeat: { freq: "weekly", weekday: 1 } } }],
   ["Какие задачи на завтра?",
     { intent: "list_events", confidence: 0.95, slots: { date: { kind: "tomorrow" }, type_filter: "task" } }],
   ["Что запланировано на эту неделю?",

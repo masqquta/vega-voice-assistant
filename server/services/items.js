@@ -3,6 +3,7 @@
 import { DateTime } from "luxon";
 import { startUtc, dueAt } from "../dates/resolver.js";
 import { searchText } from "./stem.js";
+import { occurrences, nextAfter, phrase } from "../domain/repeat.js";
 
 export class ValidationError extends Error {
   constructor(message, details = []) { super(message); this.code = "VALIDATION"; this.details = details; }
@@ -36,14 +37,15 @@ export function insertItem(db, userId, fields, { tz, nowSec }) {
     due_date: fields.due_date ?? null, due_time: fields.due_time ?? null,
     duration_min: fields.type === "meeting" ? (fields.duration_min ?? 60) : (fields.duration_min ?? null),
     status: fields.status === "done" ? "done" : "open", source: fields.source || "assistant",
-    type_confidence: fields.type_confidence ?? null,
+    type_confidence: fields.type_confidence ?? null, repeat: fields.repeat ?? null,
   };
   check(item);
+  if (item.repeat && !item.due_date) throw new ValidationError("due_date: required", [{ field: "due_date", issue: "required" }]);
   const info = db.prepare(`
     INSERT INTO items (user_id, type, title, title_raw, notes, participants, due_date, due_time, start_utc,
-                       duration_min, status, source, type_confidence, search_text, created_at, updated_at, completed_at)
+                       duration_min, status, source, type_confidence, search_text, created_at, updated_at, completed_at, repeat)
     VALUES (@user_id, @type, @title, @title_raw, @notes, @participants, @due_date, @due_time, @start_utc,
-            @duration_min, @status, @source, @type_confidence, @search_text, @now, @now, @completed_at)`).run({
+            @duration_min, @status, @source, @type_confidence, @search_text, @now, @now, @completed_at, @repeat)`).run({
     ...item, user_id: userId, start_utc: startUtc(item.due_date, item.due_time, tz),
     search_text: searchText({ ...item, participants: fields.participants }), now: nowSec,
     completed_at: item.status === "done" ? nowSec : null,
@@ -55,15 +57,22 @@ export function getItem(db, userId, id) {
   return db.prepare("SELECT * FROM items WHERE id = ? AND user_id = ? AND deleted_at IS NULL").get(id, userId) || null;
 }
 
-/** Выборка за период [from, to] по локальным датам. type="task" подтягивает и reminder (docs/04 раздел 7). */
+/**
+ * Выборка за период [from, to] по локальным датам. type="task" подтягивает и reminder (docs/04 раздел 7).
+ * Повторяющиеся записи разворачиваются: каждый раз в периоде — отдельная строка с тем же id и своей датой.
+ */
 export function listItems(db, userId, { from, to, type = null, status = "open" }) {
   const types = type === "task" ? ["task", "reminder"] : type ? [type] : null;
-  const rows = db.prepare(`
+  const once = db.prepare(`
     SELECT * FROM items
-    WHERE user_id = ? AND deleted_at IS NULL
+    WHERE user_id = ? AND deleted_at IS NULL AND repeat IS NULL
       AND (? = 'all' OR status = ?)
-      AND due_date BETWEEN ? AND ?
-    ORDER BY due_date, (due_time IS NULL), due_time, id`).all(userId, status, status, from, to);
+      AND due_date BETWEEN ? AND ?`).all(userId, status, status, from, to);
+  const series = status === "done" ? [] : db.prepare(`
+    SELECT * FROM items WHERE user_id = ? AND deleted_at IS NULL AND repeat IS NOT NULL AND due_date <= ?`).all(userId, to);
+  const repeated = series.flatMap((r) => occurrences(r.repeat, r.due_date, from, to).map((d) => ({ ...r, due_date: d, status: "open" })));
+  const rows = [...once, ...repeated].sort((a, b) => a.due_date.localeCompare(b.due_date)
+    || (a.due_time == null) - (b.due_time == null) || (a.due_time || "").localeCompare(b.due_time || "") || a.id - b.id);
   return types ? rows.filter((r) => types.includes(r.type)) : rows;
 }
 
@@ -97,7 +106,16 @@ export function updateItem(db, userId, id, patch, { tz, nowSec }) {
   return getItem(db, userId, id);
 }
 
-export function setDone(db, userId, id, done, nowSec) {
+export function setDone(db, userId, id, done, nowSec, { tz = "Europe/Moscow" } = {}) {
+  const cur = getItem(db, userId, id);
+  if (done && cur?.repeat) {
+    // повторяющаяся: «выполнено» = этот раз сделан, запись переезжает на следующий (не раньше завтра)
+    const today = DateTime.fromSeconds(nowSec, { zone: tz }).toISODate();
+    const next = nextAfter(cur.repeat, cur.due_date > today ? cur.due_date : today);
+    db.prepare("UPDATE items SET due_date = ?, start_utc = ?, completed_at = ?, updated_at = ? WHERE id = ? AND user_id = ?")
+      .run(next, startUtc(next, cur.due_time, tz), nowSec, nowSec, id, userId);
+    return { ...getItem(db, userId, id), advanced: true };
+  }
   const r = db.prepare(`
     UPDATE items SET status = ?, completed_at = ?, updated_at = ?
     WHERE id = ? AND user_id = ? AND deleted_at IS NULL`).run(done ? "done" : "open", done ? nowSec : null, nowSec, id, userId);
@@ -119,7 +137,8 @@ export function serialize(row, tz) {
     id: row.id, type: row.type, title: row.title, notes: row.notes ?? null,
     due_date: row.due_date ?? null, due_time: row.due_time ?? null, due_at: dueAt(row.due_date, row.due_time, tz),
     duration_min: row.duration_min ?? null, participants: row.participants ? JSON.parse(row.participants) : [],
-    status: row.status, created_at: isoAt(row.created_at, tz),
+    status: row.status, created_at: isoAt(row.created_at, tz), repeat: row.repeat ?? null,
+    ...(row.repeat ? { repeat_text: phrase(row.repeat) } : {}),
     ...(row.completed_at ? { completed_at: isoAt(row.completed_at, tz) } : {}),
   };
 }

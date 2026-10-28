@@ -1,5 +1,6 @@
-// Клиент API /api/v1. X-User-Id — анонимный id из localStorage (по умолчанию «demo», чтобы демо-данные
-// были видны; ?user=new создаёт свой), session_id — uuid сессии диалога. ?mock=1 — ответы из /mocks.
+// Клиент API /api/v1. X-User-Id — анонимный id из localStorage: у каждого посетителя свой, календарь
+// с чистого листа; ?user=demo — демо-профиль с датасетом ТЗ (1000 записей для поиска по истории),
+// ?user=new — новый пустой. session_id — uuid сессии диалога. ?mock=1 — ответы из /mocks.
 
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch { return null; } },
@@ -9,10 +10,14 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now().toSt
 
 export function identity() {
   const params = new URLSearchParams(location.search);
-  if (params.get("user") === "new") store.set("va.user", uuid());
-  else if (params.get("user")) store.set("va.user", params.get("user"));
+  const asked = params.get("user");
+  if (asked === "new") store.set("va.user", uuid());
+  else if (asked && /^[\w-]{1,64}$/.test(asked)) store.set("va.user", asked);
+  // раньше по умолчанию был общий «demo» — такие браузеры один раз переводим на свой пустой профиль
+  else if (store.get("va.user") === "demo" && store.get("va.v") !== "2") store.set("va.user", uuid());
+  store.set("va.v", "2");
   let user = store.get("va.user");
-  if (!user) { user = "demo"; store.set("va.user", user); }
+  if (!user) { user = uuid(); store.set("va.user", user); }
   let session = store.get("va.session");
   if (!session) { session = uuid(); store.set("va.session", session); }
   return {

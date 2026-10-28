@@ -44,6 +44,11 @@ export const Slots = z.object({
   new_time: TimeObj.optional().default(null),
   new_title: nullable(z.string().trim().min(1).max(200)),
   confirm: nullable(z.enum(["yes", "no"])),
+  repeat: nullable(z.object({                       // повторяющаяся запись (server/domain/repeat.js)
+    freq: z.enum(["daily", "weekdays", "weekly", "monthly"]),
+    weekday: int(1, 7).optional().catch(undefined),
+    day: int(1, 31).optional().catch(undefined),
+  })),
 }).passthrough();
 
 export const NluResult = z.object({

@@ -48,7 +48,14 @@ const COUNT_F = ["", "одна", "две", "три", "четыре"];
 
 export function created(item, now, conflicts = []) {
   let text;
-  if (item.type === "reminder") text = `Готово. Напомню ${when(item.due_date, item.due_time, now)}: ${lc(item.title)}.`;
+  if (item.repeat) {
+    // повтор: «Готово. Буду напоминать каждый понедельник в 09:00: сдавать отчёт. Первый раз — в понедельник, 2 ноября.»
+    const at = item.due_time ? ` в ${item.due_time}` : "";
+    const what = item.type === "reminder" ? `Буду напоминать ${item.repeat_text}${at}: ${lc(item.title)}`
+      : item.type === "meeting" ? `Поставила ${accusative(item.title)} ${item.repeat_text}${at}`
+      : `Записала задачу «${item.title}» ${item.repeat_text}${at}`;
+    text = `Готово. ${what}. Первый раз — ${dayPhrase(item.due_date, now)}.`;
+  } else if (item.type === "reminder") text = `Готово. Напомню ${when(item.due_date, item.due_time, now)}: ${lc(item.title)}.`;
   else if (item.type === "meeting") {
     const dur = item.duration_min && item.duration_min !== 60
       ? `, на ${item.duration_min % 60 === 0 ? `${item.duration_min / 60} ${plural(item.duration_min / 60, "час", "часа", "часов")}` : `${item.duration_min} минут`}` : "";
@@ -66,7 +73,9 @@ export function created(item, now, conflicts = []) {
   return text;
 }
 
-export const completed = (item) => `Отметила выполненной: «${item.title}».`;
+export const completed = (item, now) => (item.advanced
+  ? `Отметила: «${item.title}». Следующий раз — ${dayPhrase(item.due_date, now)}.`
+  : `Отметила выполненной: «${item.title}».`);
 export const reopened = (item) => `Вернула в работу: «${item.title}».`;
 export const deleted = (item) => `Удалила: «${item.title}».`;
 export function updated(item, now) {
@@ -155,6 +164,12 @@ export function candidates(rows, kind) {
   return `Нашла ${n === 2 ? "две" : n === 3 ? "три" : n} ${n <= 4 ? word[0] : word[1]}: ${rows.map((r, i) => `${i + 1}) ${r.title}`).join(", ")}. Какую?`;
 }
 export const DECLINED = "Хорошо, не ставлю. Назовите другое время.";
+/** «В 15:00 у вас уже «Встреча с командой». Всё равно поставить?» (FR-2.5) */
+export function askConflict(conflicts) {
+  const c = conflicts[0];
+  const more = conflicts.length > 1 ? ` и ещё ${conflicts.length - 1}` : "";
+  return `В ${c.due_time} у вас уже «${c.title}»${more}. Всё равно поставить?`;
+}
 export const RESET = "Не поняла. Сформулируйте запрос целиком, например: поставь встречу с Иваном завтра в 15:00.";
 export const UNKNOWN = "Не поняла запрос. Например: напомни завтра в 10 позвонить Ивану, или: что у меня сегодня?";
 export const STT_EMPTY = "Не расслышала. Повторите или напишите текстом.";

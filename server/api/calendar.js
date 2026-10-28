@@ -5,6 +5,7 @@
 // В выгрузке — открытые записи с датой: от 30 дней назад и вперёд. Встречи — со временем и длительностью,
 // задачи без времени — событием на весь день, напоминания — с сигналом в момент срока.
 import { DateTime } from "luxon";
+import { toIcs } from "../domain/repeat.js";
 
 const PAST_DAYS = 30;
 
@@ -44,6 +45,7 @@ export function buildIcs(rows, { tz, host }) {
       lines.push(`DTSTART;VALUE=DATE:${day(r.due_date)}`, `DTEND;VALUE=DATE:${day(DateTime.fromISO(r.due_date).plus({ days: 1 }).toISODate())}`,
         "TRANSP:TRANSPARENT");                                     // задача на день не занимает время в расписании
     }
+    if (r.repeat) lines.push(toIcs(r.repeat));                    // повтор — календарь сам разложит по дням
     if (r.notes) lines.push(`DESCRIPTION:${esc(r.notes)}`);
     if (r.type === "reminder" && r.due_time) lines.push("BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${esc(r.title)}`, "TRIGGER:PT0M", "END:VALARM");
     if (r.type === "meeting") lines.push("BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${esc(r.title)}`, "TRIGGER:-PT10M", "END:VALARM");

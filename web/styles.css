@@ -183,6 +183,7 @@ button, input { font: inherit; color: inherit; }
 .row[data-type="reminder"] .k { background: var(--reminder); }
 .row[data-type="meeting"] .k { background: var(--meeting); }
 .row.done .title { text-decoration: line-through; color: var(--faint); }
+.row[data-repeat] .title::after, .cell .it[data-repeat] span::after { content: " ↻"; color: var(--muted); }
 .empty { color: var(--faint); margin: 12px 0 0; }
 
 /* ---------- календарь на месяц ---------- */

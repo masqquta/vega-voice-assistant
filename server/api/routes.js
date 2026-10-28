@@ -172,7 +172,7 @@ export function apiRouter({ db, assistant, stt, embedder, nlu, log }) {
     try {
       const id = idParam(req);
       const done = req.body?.done === undefined ? true : Boolean(req.body.done);
-      const row = items.setDone(db, req.userId, id, done, Math.floor(req.now.toSeconds()));
+      const row = items.setDone(db, req.userId, id, done, Math.floor(req.now.toSeconds()), { tz: req.tz });
       if (!row) throw new ApiError(404, "NOT_FOUND", "item not found");
       res.json({ item: items.serialize(row, req.tz) });
     } catch (e) { next(e); }

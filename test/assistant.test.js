@@ -103,13 +103,26 @@ describe("Действие 2: встреча", () => {
     const it = (await say("Встреча с инвесторами послезавтра в 10 утра на 2 часа")).data.item;
     assert.deepEqual([it.due_date, it.due_time, it.duration_min], ["2026-10-23", "10:00", 120]);
   });
-  test("T-conf пересечение с T-2.1 → предупреждение, встреча создаётся (FR-2.4)", async () => {
+  test("T-conf пересечение → «Всё равно поставить?» (FR-2.5), «да» → встреча создаётся с предупреждением (FR-2.4)", async () => {
     const { say } = setup();
     await say("Добавь встречу с командой завтра в 15:00");
-    const r = await say("Встреча с партнёрами завтра в 15:30");
+    const q = await say("Встреча с партнёрами завтра в 15:30");
+    assert.equal(q.status, "need_clarification");
+    assert.deepEqual(q.missing_slots, ["confirm"]);
+    assert.equal(q.reply_text, "В 15:00 у вас уже «Встреча с командой». Всё равно поставить?");
+    const r = await say("да");
     assert.equal(r.status, "ok");
     assert.equal(r.data.conflicts.length, 1);
     assert.match(r.reply_text, /пересекается с «Встреча с командой» в 15:00/);
+  });
+  test("T-conf-no «нет» на конфликт → просим другое время, «в 17» → ставим без вопроса", async () => {
+    const { say } = setup();
+    await say("Добавь встречу с командой завтра в 15:00");
+    await say("Встреча с партнёрами завтра в 15:30");
+    const no = await say("нет");
+    assert.equal(no.status, "need_clarification");
+    const r = await say("в 17");
+    assert.deepEqual([r.status, r.data.item.due_time, r.data.conflicts.length], ["ok", "17:00", 0]);
   });
 });
 

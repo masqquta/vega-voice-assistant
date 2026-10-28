@@ -750,6 +750,7 @@ addEventListener("keyup", (e) => { if (e.code === "Space" && !typing() && record
 function rowFor(it, onToggle) {
   const row = el("label", `row${it.status === "done" ? " done" : ""}`);
   row.dataset.type = it.type;
+  if (it.repeat) { row.dataset.repeat = ""; row.title = `Повторяется ${it.repeat_text}`; }
   const box = el("input");
   box.type = "checkbox"; box.checked = it.status === "done";
   box.setAttribute("aria-label", `Выполнено: ${it.title}`);
@@ -819,6 +820,7 @@ function renderMonth() {
     for (const it of list.slice(0, MAX_IN_CELL)) {
       const row = el("span", `it${it.status === "done" ? " done" : ""}`);
       row.dataset.type = it.type;
+      if (it.repeat) row.dataset.repeat = "";
       row.append(el("span", null, it.title));
       cell.append(row);
     }
