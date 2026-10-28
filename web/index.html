@@ -106,8 +106,12 @@
         <h2 id="agendaTitle">Ближайшие 7 дней</h2>
         <p class="today" id="today"></p>
       </div>
-      <button class="tool text" id="refresh" type="button">Обновить</button>
+      <div class="agenda-tools">
+        <button class="tool text" id="calendar" type="button" aria-expanded="false" aria-controls="calHint">В календарь</button>
+        <button class="tool text" id="refresh" type="button">Обновить</button>
+      </div>
     </div>
+    <div class="cal-hint" id="calHint" hidden></div>
     <div class="agenda" id="agenda"></div>
   </section>
 </main>

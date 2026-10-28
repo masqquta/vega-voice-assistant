@@ -164,6 +164,12 @@ button, input { font: inherit; color: inherit; }
 }
 .agenda-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .agenda-head h2 { margin: 0; font-size: 24px; font-weight: 600; }
+.agenda-tools { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.cal-hint { margin-top: 12px; padding: 14px 16px; border-radius: 16px; background: var(--surface); font-size: 14px; line-height: 1.5; }
+.cal-hint p { margin: 0 0 6px; }
+.cal-hint code { display: block; margin: 0 0 8px; overflow-wrap: anywhere; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+.cal-hint a { color: inherit; }
+.cal-links { margin: 6px 0 0 !important; }
 .today { margin: 4px 0 0; color: var(--muted); }
 .today::first-letter { text-transform: uppercase; }
 .agenda { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px 24px; margin-top: 10px; }

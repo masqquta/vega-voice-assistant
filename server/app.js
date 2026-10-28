@@ -6,6 +6,7 @@ import express from "express";
 import { apiRouter, healthHandler } from "./api/routes.js";
 import { requestId, userId, rateLimit, clock, errorHandler } from "./api/middleware.js";
 import { ensureUser } from "./services/items.js";
+import { calendarHandler } from "./api/calendar.js";
 
 const WEB = path.join(path.dirname(fileURLToPath(import.meta.url)), "../web");
 const THREE_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "../node_modules/three");   // three.js отдаём сами: без CDN заставка не зависает
@@ -29,6 +30,7 @@ export function createApp({ db, assistant, nlu, stt, embedder = null, config, lo
   const api = express.Router();
   api.use(requestId);
   api.get("/health", healthHandler({ db, nlu }));
+  api.get("/calendar/:user.ics", calendarHandler({ db, tzDefault: config.tzDefault }));   // календарь не шлёт X-User-Id
   api.use(express.json({ limit: "16kb" }));
   api.use(userId);
   api.use(rateLimit(config.rateLimitPerMin));

@@ -783,6 +783,25 @@ async function loadAgenda() {
 }
 $("refresh").addEventListener("click", loadAgenda);
 
+// ---------- подписка в календаре: ссылка .ics, календарь сам её перечитывает ----------
+$("calendar").addEventListener("click", async () => {
+  const hint = $("calHint"), btn = $("calendar");
+  if (!hint.hidden) { hint.hidden = true; btn.setAttribute("aria-expanded", "false"); return; }
+  const url = `${location.origin}/api/v1/calendar/${encodeURIComponent(id.user)}.ics`;
+  let copied = false;
+  try { await navigator.clipboard.writeText(url); copied = true; } catch { /* нет доступа к буферу — покажем ссылку */ }
+  const link = (href, text) => { const a = el("a", null, text); a.href = href; return a; };
+  const code = el("code", null, url);
+  hint.replaceChildren(
+    el("p", null, copied ? "Ссылка на календарь скопирована." : "Ссылка на календарь:"), code,
+    el("p", null, "Google Календарь: «Другие календари» → «+» → «Добавить по URL» → вставьте ссылку. Яндекс Календарь: «Новый календарь» → «Импорт» → «По ссылке». Задачи из Веги будут появляться там сами."),
+    el("p", "cal-links"),
+  );
+  hint.lastChild.append(link(url.replace(/^https?:/, "webcal:"), "Открыть в приложении календаря"), " · ", link(url, "Скачать .ics"));
+  hint.hidden = false;
+  btn.setAttribute("aria-expanded", "true");
+});
+
 // ---------- живые напоминания: в срок — стеклянный тост сверху и голос шара ----------
 const reminders = {
   items: [],
