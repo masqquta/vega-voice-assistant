@@ -20,9 +20,11 @@ COPY web ./web
 COPY scripts ./scripts
 COPY data/seed_mini.json data/dataset.clean.csv ./data/
 
-ENV NODE_ENV=production PORT=3000 DB_PATH=/data/app.db TZ_DEFAULT=Europe/Moscow MODEL_CACHE_DIR=/app/.cache/models
-# модель эмбеддингов (~130 МБ) скачиваем при сборке: на free-хостинге диск временный, старт должен быть быстрым
-RUN node --input-type=module -e "const m = await import('./server/services/embeddings.js'); await m.createEmbedder('local').warmup(); console.log('model ready')"
+ENV NODE_ENV=production PORT=3000 DB_PATH=/app/data/app.db TZ_DEFAULT=Europe/Moscow MODEL_CACHE_DIR=/app/.cache/models
+# Всё тяжёлое — при сборке, на мощной машине: скачать модель эмбеддингов (~130 МБ), собрать базу
+# (демо + датасет ТЗ) и посчитать векторы. На free-хостинге ~0,1 CPU — там это заняло бы десятки минут,
+# а так контейнер стартует с готовой базой (диск временный: каждый старт — снова эта, чистая).
+RUN node scripts/import_dataset.js && node scripts/build_embeddings.js
 EXPOSE 3000
 # при старте: миграции и автосид пустой БД выполняет сам сервер
 # импорт датасета идемпотентен: на временном диске (Render free) база собирается заново при каждом старте

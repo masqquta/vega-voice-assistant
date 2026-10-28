@@ -43,14 +43,16 @@ async function localPipeline() {
 }
 function localEmbedder() {
   const embed = async (text) => Float32Array.from((await (await localPipeline())(text, { pooling: "mean", normalize: true })).data);
-  return {
+  const self = {
     model: "local/multilingual-e5-small",
+    ready: false,                                  // пока модель грузится (на слабом CPU — минуты), поиск идёт по словам
     threshold: config.semThreshold ?? 0.82,          // подобран npm run eval:search (docs/eval/*-search.md)
     margin: 0.01,                                  // запас для «только-семантических» результатов
     embedDoc: (t) => embed(`passage: ${t}`),       // префиксы обязательны для e5
     embedQuery: (t) => embed(`query: ${t}`),
-    warmup: () => localPipeline(),
+    warmup: () => localPipeline().then((p) => { self.ready = true; return p; }),
   };
+  return self;
 }
 
 export function createEmbedder(kind = config.embeddings) {

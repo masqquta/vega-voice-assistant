@@ -57,7 +57,10 @@ export async function search(db, { userId, q, type = null, mode = "hybrid", limi
   const fts = mode === "semantic" ? [] : ftsRank(db, userId, terms, types);
   let sem = [];
   if (mode !== "fts") {
-    if (embedder) {
+    if (embedder && embedder.ready === false) {
+      if (mode === "semantic") throw Object.assign(new Error("embeddings warming up"), { code: "UPSTREAM" });
+      degraded = true;                          // модель ещё грузится — не ждём её, отвечаем по словам
+    } else if (embedder) {
       try { sem = await semanticRank(db, userId, q, types, embedder); }
       catch (e) { if (mode === "semantic") throw Object.assign(e, { code: "UPSTREAM" }); degraded = true; }
     } else if (mode === "semantic") {

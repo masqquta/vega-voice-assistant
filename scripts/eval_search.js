@@ -37,6 +37,7 @@ db.transaction(() => {
 const embedder = createEmbedder();
 if (!embedder) { console.log("Эмбеддинги выключены (EMBEDDINGS=off)"); process.exit(0); }
 const t0 = Date.now();
+await embedder.warmup?.();
 await backfill(db, embedder);
 const n = db.prepare("SELECT COUNT(*) n FROM embeddings").get().n;
 console.log(`Векторы: ${n} записей за ${Date.now() - t0} мс (${embedder.model})`);

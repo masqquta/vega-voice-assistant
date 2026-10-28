@@ -29,5 +29,12 @@ app.listen(config.port, () => {
     stt: stt.available() ? stt.name : "browser-fallback", embeddings: embedder ? embedder.model : "off (FTS only)",
   });
   // векторы считаем фоном: сервис уже отвечает, а пока их нет, поиск работает по словам (FTS)
-  setTimeout(() => backfill(db, embedder, log).catch((e) => log({ event: "embedding_error", error: e.message })), 1000);
+  setTimeout(async () => {
+    try {
+      const t0 = Date.now();
+      await embedder?.warmup?.();
+      if (embedder?.warmup) log({ event: "embeddings_model_loaded", ms: Date.now() - t0 });
+      await backfill(db, embedder, log);       // в Docker-образе векторы уже посчитаны при сборке — тут только новые
+    } catch (e) { log({ event: "embedding_error", error: e.message }); }
+  }, 1000);
 });
