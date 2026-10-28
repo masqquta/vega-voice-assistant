@@ -11,7 +11,10 @@ ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+# python3/make/g++ — на случай, если готовой сборки better-sqlite3 под платформу нет и её надо скомпилировать
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
+ && npm ci --omit=dev \
+ && apt-get purge -y python3 make g++ && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 COPY server ./server
 COPY web ./web
 COPY scripts ./scripts
