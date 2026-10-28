@@ -15,9 +15,11 @@
     "seed": "node scripts/import_dataset.js",
     "embeddings": "node scripts/build_embeddings.js",
     "test": "node --test \"test/*.test.js\"",
-    "eval:nlu": "node scripts/eval_nlu.js"
+    "eval:nlu": "node scripts/eval_nlu.js",
+    "eval:search": "node scripts/eval_search.js"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.3.2",
     "better-sqlite3": "^13.0.3",
     "express": "4.21.2",
     "luxon": "3.5.0",

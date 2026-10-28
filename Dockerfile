@@ -20,7 +20,9 @@ COPY web ./web
 COPY scripts ./scripts
 COPY data/seed_mini.json data/dataset.clean.csv ./data/
 
-ENV NODE_ENV=production PORT=3000 DB_PATH=/data/app.db TZ_DEFAULT=Europe/Moscow
+ENV NODE_ENV=production PORT=3000 DB_PATH=/data/app.db TZ_DEFAULT=Europe/Moscow MODEL_CACHE_DIR=/app/.cache/models
+# модель эмбеддингов (~130 МБ) скачиваем при сборке: на free-хостинге диск временный, старт должен быть быстрым
+RUN node --input-type=module -e "const m = await import('./server/services/embeddings.js'); await m.createEmbedder('local').warmup(); console.log('model ready')"
 EXPOSE 3000
 # при старте: миграции и автосид пустой БД выполняет сам сервер
 # импорт датасета идемпотентен: на временном диске (Render free) база собирается заново при каждом старте

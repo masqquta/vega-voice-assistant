@@ -1,5 +1,6 @@
 // npm run embeddings — считает эмбеддинги для записей без вектора или с изменившимся текстом.
-// Пакетами с паузами (лимиты API). Нужен YANDEX_API_KEY + YANDEX_FOLDER_ID.
+// Модель — локальная multilingual-e5-small (без ключей) или Yandex, если задан YANDEX_API_KEY. Сервер
+// сам досчитывает векторы фоном при старте; скрипт нужен для ручного пересчёта.
 import { config } from "../server/config.js";
 import { openDb } from "../server/db/index.js";
 import { createEmbedder, embedItem } from "../server/services/embeddings.js";
@@ -7,7 +8,7 @@ import { createEmbedder, embedItem } from "../server/services/embeddings.js";
 const BATCH = 20, PAUSE_MS = 1000;
 const embedder = createEmbedder();
 if (!embedder) {
-  console.log("Ключ эмбеддингов не задан (YANDEX_API_KEY, YANDEX_FOLDER_ID): поиск работает в режиме FTS.");
+  console.log("Эмбеддинги выключены (EMBEDDINGS=off): поиск работает в режиме FTS.");
   process.exit(0);
 }
 const db = openDb(config.dbPath);

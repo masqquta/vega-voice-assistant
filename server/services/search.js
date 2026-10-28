@@ -73,9 +73,10 @@ export async function search(db, { userId, q, type = null, mode = "hybrid", limi
   });
 
   const out = [];
+  const tSem = embedder?.threshold ?? T_SEM;                            // порог у каждой модели свой
   for (const c of byId.values()) {
-    const semOk = c.cos != null && c.cos >= T_SEM;
-    if (!c.fts && !(semOk && c.cos >= T_SEM + 0.05)) continue;          // слабый только-семантический — мимо
+    const semOk = c.cos != null && c.cos >= tSem;
+    if (!c.fts && !(semOk && c.cos >= tSem + (embedder?.margin ?? 0.05))) continue;   // слабый только-семантический — мимо
     if (status && c.row.status !== status) continue;
     let score = (c.fts ? W_FTS / (RRF_K + c.fts) : 0) + (semOk ? W_SEM / (RRF_K + c.sem) : 0);
     const ts = stems(c.row.title);

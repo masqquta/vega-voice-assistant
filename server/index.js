@@ -4,7 +4,7 @@ import { openDb } from "./db/index.js";
 import { seedIfEmpty } from "./db/seed.js";
 import { createNlu } from "./nlu/adapter.js";
 import { createStt } from "./stt/index.js";
-import { createEmbedder } from "./services/embeddings.js";
+import { createEmbedder, backfill } from "./services/embeddings.js";
 import { createAssistant } from "./services/assistant.js";
 import { createApp } from "./app.js";
 
@@ -28,4 +28,6 @@ app.listen(config.port, () => {
     nlu: Object.keys(nlu.status).filter((k) => nlu.status[k] === "configured").concat("rulebased"),
     stt: stt.available() ? stt.name : "browser-fallback", embeddings: embedder ? embedder.model : "off (FTS only)",
   });
+  // векторы считаем фоном: сервис уже отвечает, а пока их нет, поиск работает по словам (FTS)
+  setTimeout(() => backfill(db, embedder, log).catch((e) => log({ event: "embedding_error", error: e.message })), 1000);
 });

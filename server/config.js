@@ -33,6 +33,9 @@ export const config = {
   sttProvider: env.STT_PROVIDER || "yandex",
   whisperApiKey: env.WHISPER_API_KEY || "",
   llmTimeoutMs: Number(env.LLM_TIMEOUT_MS || 4000),
+  embeddings: env.EMBEDDINGS || "local",        // local | yandex | off
+  semThreshold: env.SEM_THRESHOLD ? Number(env.SEM_THRESHOLD) : null,
+  modelCacheDir: env.MODEL_CACHE_DIR || ".cache/models",
   nluCascade: env.NLU_CASCADE !== "0",          // 0 — всегда спрашивать LLM (для сравнения в eval)
   rateLimitPerMin: Number(env.RATE_LIMIT_PER_MIN || 30),
   seedDemo: env.SEED_DEMO !== "0",
