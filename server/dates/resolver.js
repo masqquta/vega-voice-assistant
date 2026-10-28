@@ -4,7 +4,7 @@
 import { DateTime } from "luxon";
 
 export const DATE_KINDS = ["today", "tomorrow", "day_after_tomorrow", "weekday", "in_days", "absolute",
-  "this_week", "next_week", "end_of_week", "none"];
+  "this_week", "next_week", "end_of_week", "weekend", "none"];
 
 const PART_HOUR = { morning: 9, day: 13, evening: 19 };   // «утром» без часа → 09:00 и т. д.
 
@@ -55,6 +55,11 @@ export function resolveDate(date, now, { type = "task", mode = "create" } = {}) 
       return { date: to, period: null, need: null };                               // дедлайн — воскресенье
     }
     case "end_of_week": return one(today.startOf("week").plus({ days: 6 }));
+    case "weekend": {                                                // «на выходных»: сб–вс этой недели
+      const from = today.startOf("week").plus({ days: 5 });
+      if (mode === "list") return { date: null, period: { from, to: from.plus({ days: 1 }) }, need: null };
+      return { date: null, period: null, need: "date" };            // создать «на выходных» — спросим день
+    }
     default: return { date: null, period: null, need: null };
   }
 }

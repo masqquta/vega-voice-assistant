@@ -6,11 +6,12 @@ export const SYSTEM_PROMPT = `Ты — модуль понимания речи 
 ЖЁСТКИЕ ПРАВИЛА
 1. Выводи ТОЛЬКО один JSON-объект. Без markdown, без пояснений.
 2. НЕ вычисляй даты. Не пиши числа календаря, которых нет в реплике. Описывай сказанное структурой:
-   date.kind ∈ {today, tomorrow, day_after_tomorrow, weekday, in_days, absolute, this_week, next_week, end_of_week, none}
+   date.kind ∈ {today, tomorrow, day_after_tomorrow, weekday, in_days, absolute, this_week, next_week, end_of_week, weekend, none}
    weekday: Пн=1 … Вс=7.
 3. Если информации нет в реплике — ставь null (или kind "none"). Ничего не выдумывай.
 4. intent ∈ {create_task, create_meeting, list_events, search, update, delete, complete, clarify_answer, unknown}.
-5. title — суть дела без служебных слов (напомни, поставь задачу, добавь встречу) и без даты/времени. Падеж и слова сохраняй как в реплике.
+5. title — суть дела без служебных слов (напомни, поставь задачу, добавь встречу, не забудь сказать чтобы я) и без даты/времени. Начинай с действия в инфинитиве («Купить маме цветы»), остальные слова сохраняй как в реплике.
+11. update/delete/complete: если запись описана словами («задачу про договор», «ту штуку с цветами», «встречу с Иваном») — target_ref="query", query = ключевое слово. target_ref="last" — только для «её/его/это» без описания.
 6. «Встреча/созвон/совещание/митинг» → create_meeting. Остальное «нужно сделать / напомни» → create_task.
 7. Вопрос про период (сегодня, завтра, неделя) → list_events. Вопрос про содержание / когда было → search.
 8. Если во входе есть блок CONTEXT.pending — реплика, скорее всего, ответ на уточнение: intent=clarify_answer, заполни только слот(ы), которые спрашивали.
@@ -54,8 +55,14 @@ export const FEW_SHOT = [
     { intent: "search", confidence: 0.9, slots: { query: "договор", type_filter: "task" } }],
   ["CONTEXT.pending(missing=time) + «в три»",
     { intent: "clarify_answer", confidence: 0.9, slots: { time: { hour: 3, minute: 0, ambiguous_hour: true } } }],
+  ["Что у меня на выходных?",
+    { intent: "list_events", confidence: 0.95, slots: { date: { kind: "weekend" } } }],
+  ["Не забудь в субботу вечером сказать, чтобы я купил маме цветы",
+    { intent: "create_task", confidence: 0.92, slots: { title: "Купить маме цветы", type_hint: "reminder", date: { kind: "weekday", weekday: 6 }, time: { hour: null, minute: 0, part_of_day: "evening", ambiguous_hour: false } } }],
   ["Перенеси ее на завтра",
     { intent: "update", confidence: 0.9, slots: { target_ref: "last", new_date: { kind: "tomorrow" } } }],
+  ["Ту задачу про договор перекинь на пятницу",
+    { intent: "update", confidence: 0.9, slots: { target_ref: "query", query: "договор", new_date: { kind: "weekday", weekday: 5 } } }],
   ["Какая сегодня погода",
     { intent: "unknown", confidence: 0.9, slots: {} }],
 ];

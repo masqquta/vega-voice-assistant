@@ -20,6 +20,7 @@ export async function complete(messages, { signal } = {}) {
       models: config.openrouter.models,
       temperature: 0,
       max_tokens: 400,
+      reasoning: { enabled: false },   // «размышления» дают 10–15 с задержки, для извлечения слотов не нужны
       messages: messages.map((m) => ({ role: m.role, content: m.text })),
     }),
   });

@@ -22,7 +22,7 @@ export const config = {
   },
   openrouter: {
     apiKey: env.OPENROUTER_API_KEY || "",
-    models: (env.OPENROUTER_MODELS || "google/gemma-4-31b-it:free,nvidia/nemotron-3-ultra-550b-a55b:free")
+    models: (env.OPENROUTER_MODELS || "nvidia/nemotron-3.5-super-vl:free,nvidia/nemotron-3.5-lightning:free,nvidia/nemotron-3-ultra-550b-a55b:free")
       .split(",").map((s) => s.trim()).filter(Boolean),
   },
   gigachat: {

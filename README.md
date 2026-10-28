@@ -23,7 +23,7 @@
 | Язык / рантайм | Node.js 20 (ESM) | один язык для фронта и бэка |
 | Фронт | ванильный JS, three.js 0.169 (шар) | без сборки, отдаётся тем же сервисом |
 | БД | SQLite (better-sqlite3), WAL, FTS5 | файл на volume, полнотекст из коробки |
-| LLM | OpenRouter (бесплатные Gemma 4 31B → Nemotron 3 Ultra), YandexGPT, GigaChat, последний слой RuleBased | бесплатный ключ без карты; демо работает и без LLM |
+| LLM | OpenRouter (бесплатные NVIDIA Nemotron 3.5 Super → Lightning → 3 Ultra), YandexGPT, GigaChat, последний слой RuleBased | бесплатный ключ без карты; демо работает и без LLM |
 | STT | SpeechKit или Whisper (`STT_PROVIDER`); без ключа — распознавание браузера | голос не ломается без ключей |
 | TTS | браузерный `speechSynthesis` (ru-RU), кнопка mute | бесплатно, без задержки |
 | Эмбеддинги | Yandex text-search-doc/query | семантический поиск; без ключа — FTS + словарь синонимов |

@@ -94,7 +94,8 @@ export function createAssistant({ db, nlu, embedder = null, log = () => {} }) {
 
   function listFlow(slots, env) {
     const { ctx, now, tz, userId } = env;
-    const r = resolve({ date: slots.date, time: null }, now, { mode: "list" });
+    const date = slots.weekend && (slots.date?.kind || "none") === "none" ? { kind: "weekend" } : slots.date;
+    const r = resolve({ date, time: null }, now, { mode: "list" });
     const today = now.toISODate();
     const period = r.period || { from: today, to: today };
     const status = slots.status === "done" ? "done" : "open";

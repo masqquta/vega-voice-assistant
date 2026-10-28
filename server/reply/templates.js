@@ -27,6 +27,8 @@ export function dayPhrase(iso, now) {
 }
 /** «завтра, 22 октября, в 10:00» */
 export const when = (date, time, now) => `${dayPhrase(date, now)}${time ? `, в ${time}` : ""}`;
+/** после «на»: «на воскресенье, 1 ноября», а не «на в воскресенье» */
+const onWhen = (date, time, now) => when(date, time, now).replace(/^во? /, "");
 
 /** Встреча в винительном падеже для «Поставила …»: «Встреча с дизайнером» → «встречу с дизайнером». */
 function accusative(title) {
@@ -51,7 +53,7 @@ export function created(item, now, conflicts = []) {
     const dur = item.duration_min && item.duration_min !== 60
       ? `, на ${item.duration_min % 60 === 0 ? `${item.duration_min / 60} ${plural(item.duration_min / 60, "час", "часа", "часов")}` : `${item.duration_min} минут`}` : "";
     text = `Поставила ${accusative(item.title)} ${when(item.due_date, item.due_time, now)}${dur}.`;
-  } else if (item.due_date && item.due_time) text = `Записала задачу «${item.title}» на ${when(item.due_date, item.due_time, now)}.`;
+  } else if (item.due_date && item.due_time) text = `Записала задачу «${item.title}» на ${onWhen(item.due_date, item.due_time, now)}.`;
   else if (item.due_date) {
     const n = diffDays(item.due_date, now), d = D(item.due_date);
     const by = n >= 2 && n <= 13 ? `до ${WD_GEN[d.weekday]}, ${dm(d)}` : `на ${dayPhrase(item.due_date, now)}`;
@@ -68,7 +70,7 @@ export const completed = (item) => `Отметила выполненной: «$
 export const reopened = (item) => `Вернула в работу: «${item.title}».`;
 export const deleted = (item) => `Удалила: «${item.title}».`;
 export function updated(item, now) {
-  if (item.due_date) return `Перенесла «${item.title}» на ${when(item.due_date, item.due_time, now)}.`;
+  if (item.due_date) return `Перенесла «${item.title}» на ${onWhen(item.due_date, item.due_time, now)}.`;
   return `Изменила: «${item.title}».`;
 }
 
